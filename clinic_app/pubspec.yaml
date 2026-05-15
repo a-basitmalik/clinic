@@ -1,0 +1,37 @@
+name: clinic_app
+description: Clinic Management System - Full Stack SaaS Platform
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HTTP client
+  http: ^1.2.1
+
+  # Secure token storage
+  flutter_secure_storage: ^9.2.2
+
+  # State management
+  provider: ^6.1.2
+
+  # Date formatting
+  intl: ^0.19.0
+
+  # Typography
+  google_fonts: ^6.2.1
+
+  # Icons (extended)
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

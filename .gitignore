@@ -1,0 +1,70 @@
+# ── Python / Flask Backend ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Environment / secrets
+.env
+.env.*
+*.secret
+config/secrets.py
+instance/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# ── Flutter / Dart ────────────────────────────────────────────────────────────
+# Build outputs
+clinic_app/build/
+clinic_app/.dart_tool/
+clinic_app/.flutter-plugins
+clinic_app/.flutter-plugins-dependencies
+clinic_app/.pub-cache/
+clinic_app/.pub/
+clinic_app/pubspec.lock
+
+# Generated files
+clinic_app/**/*.g.dart
+clinic_app/**/*.freezed.dart
+
+# iOS / macOS
+clinic_app/ios/Pods/
+clinic_app/ios/.symlinks/
+clinic_app/macos/Pods/
+clinic_app/macos/.symlinks/
+*.xcworkspace/xcuserdata/
+
+# Android
+clinic_app/android/.gradle/
+clinic_app/android/local.properties
+clinic_app/android/key.properties
+*.keystore
+*.jks
+
+# ── General ───────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
