@@ -23,27 +23,44 @@ class AllClinicsScreen extends StatefulWidget {
 }
 
 class _AllClinicsScreenState extends State<AllClinicsScreen> {
-  List<ClinicModel> _all      = [];
+  List<ClinicModel> _all = [];
   List<ClinicModel> _filtered = [];
-  bool    _loading = true;
+  bool _loading = true;
   String? _error;
-  String  _search = '';
+  String _search = '';
   String? _statusFilter;
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final params = <String, String>{};
       if (_statusFilter != null) params['status'] = _statusFilter!;
       _all = await SuperAdminService.getAllClinics(queryParams: params);
-      if (mounted) { _applyFilter(); setState(() => _loading = false); }
+      if (mounted) {
+        _applyFilter();
+        setState(() => _loading = false);
+      }
     } on ApiException catch (e) {
-      if (mounted) setState(() { _error = e.message; _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.message;
+          _loading = false;
+        });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
@@ -51,16 +68,19 @@ class _AllClinicsScreenState extends State<AllClinicsScreen> {
     final q = _search.toLowerCase();
     _filtered = q.isEmpty
         ? List.from(_all)
-        : _all.where((c) =>
-            c.clinicName.toLowerCase().contains(q) ||
-            c.city.toLowerCase().contains(q) ||
-            c.ownerName.toLowerCase().contains(q)).toList();
+        : _all
+            .where((c) =>
+                c.clinicName.toLowerCase().contains(q) ||
+                c.city.toLowerCase().contains(q) ||
+                c.ownerName.toLowerCase().contains(q))
+            .toList();
   }
 
   void _openDetail(ClinicModel clinic) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ClinicDetailScreen(clinicId: clinic.id)),
+      MaterialPageRoute(
+          builder: (_) => ClinicDetailScreen(clinicId: clinic.id)),
     ).then((_) => _load());
   }
 
@@ -74,13 +94,26 @@ class _AllClinicsScreenState extends State<AllClinicsScreen> {
         children: [
           SearchFilterBar(
             hint: 'Search by name, city, owner…',
-            onSearch: (q) => setState(() { _search = q; _applyFilter(); }),
-            filters: [_StatusFilter(value: _statusFilter, onChanged: (v) { setState(() => _statusFilter = v); _load(); })],
+            onSearch: (q) => setState(() {
+              _search = q;
+              _applyFilter();
+            }),
+            filters: [
+              _StatusFilter(
+                  value: _statusFilter,
+                  onChanged: (v) {
+                    setState(() => _statusFilter = v);
+                    _load();
+                  })
+            ],
           ),
           const SizedBox(height: 16),
-          if (_loading)       const LoadingWidget()
-          else if (_error != null) ErrorView(message: _error!, onRetry: _load)
-          else _buildContent(),
+          if (_loading)
+            const LoadingWidget()
+          else if (_error != null)
+            ErrorView(message: _error!, onRetry: _load)
+          else
+            _buildContent(),
         ],
       ),
     );
@@ -101,18 +134,32 @@ class _AllClinicsScreenState extends State<AllClinicsScreen> {
       rows: _filtered,
       emptyMessage: 'No clinics found.',
       columns: [
-        AppTableColumn(header: 'Clinic Name', cell: (c) => Text(c.clinicName, style: const TextStyle(fontWeight: FontWeight.w500))),
-        AppTableColumn(header: 'Owner',       cell: (c) => Text(c.ownerName)),
-        AppTableColumn(header: 'City',        cell: (c) => Text(c.city)),
-        AppTableColumn(header: 'Type',        cell: (c) => Text(c.clinicType == 'single_doctor' ? 'Single' : 'Multi')),
-        AppTableColumn(header: 'Doctors',     cell: (c) => Text('${c.numberOfDoctors ?? 0}')),
-        AppTableColumn(header: 'Status',      cell: (c) => StatusBadge(c.status)),
-        AppTableColumn(header: 'Registered',  cell: (c) => Text(Helpers.formatDate(c.createdAt), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-        AppTableColumn(header: 'Actions',     cell: (c) => IconButton(
-          icon: const Icon(Icons.visibility_rounded, size: 18, color: AppColors.primary),
-          tooltip: 'View Details',
-          onPressed: () => _openDetail(c),
-        )),
+        AppTableColumn(
+            header: 'Clinic Name',
+            cell: (c) => Text(c.clinicName,
+                style: const TextStyle(fontWeight: FontWeight.w500))),
+        AppTableColumn(header: 'Owner', cell: (c) => Text(c.ownerName)),
+        AppTableColumn(header: 'City', cell: (c) => Text(c.city)),
+        AppTableColumn(
+            header: 'Type',
+            cell: (c) =>
+                Text(c.clinicType == 'single_doctor' ? 'Single' : 'Multi')),
+        AppTableColumn(
+            header: 'Doctors', cell: (c) => Text('${c.numberOfDoctors ?? 0}')),
+        AppTableColumn(header: 'Status', cell: (c) => StatusBadge(c.status)),
+        AppTableColumn(
+            header: 'Registered',
+            cell: (c) => Text(Helpers.formatDate(c.createdAt),
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary))),
+        AppTableColumn(
+            header: 'Actions',
+            cell: (c) => IconButton(
+                  icon: const Icon(Icons.visibility_rounded,
+                      size: 18, color: AppColors.primary),
+                  tooltip: 'View Details',
+                  onPressed: () => _openDetail(c),
+                )),
       ],
     );
   }
@@ -125,27 +172,47 @@ class _StatusFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final active = value != null;
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
+        gradient: active
+            ? LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: .13),
+                  AppColors.primaryLight.withValues(alpha: .05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: active ? null : AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: active
+                ? AppColors.primary.withValues(alpha: .35)
+                : AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: value,
-          hint: const Text('All Status', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          hint: const Text('All Status',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           items: const [
-            DropdownMenuItem(value: null,         child: Text('All Status')),
-            DropdownMenuItem(value: 'pending',    child: Text('Pending')),
-            DropdownMenuItem(value: 'approved',   child: Text('Approved')),
-            DropdownMenuItem(value: 'suspended',  child: Text('Suspended')),
+            DropdownMenuItem(value: null, child: Text('All Status')),
+            DropdownMenuItem(value: 'pending', child: Text('Pending')),
+            DropdownMenuItem(value: 'approved', child: Text('Approved')),
+            DropdownMenuItem(value: 'suspended', child: Text('Suspended')),
           ],
           onChanged: onChanged,
-          style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
-          icon: const Icon(Icons.expand_more_rounded, size: 18, color: AppColors.textSecondary),
+          style: TextStyle(
+              fontSize: 13,
+              color: active ? AppColors.primary : AppColors.textPrimary,
+              fontWeight: active ? FontWeight.w600 : FontWeight.normal),
+          icon: Icon(Icons.expand_more_rounded,
+              size: 18,
+              color: active ? AppColors.primary : AppColors.textSecondary),
         ),
       ),
     );
@@ -164,20 +231,37 @@ class _ClinicCardContent extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.primarySurface,
-            borderRadius: BorderRadius.circular(10),
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary.withValues(alpha: .18),
+                AppColors.primaryLight.withValues(alpha: .08),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(14),
+            border:
+                Border.all(color: AppColors.primary.withValues(alpha: .22)),
           ),
-          child: const Icon(Icons.local_hospital_rounded, color: AppColors.primary, size: 22),
+          child: const Icon(Icons.local_hospital_rounded,
+              color: AppColors.primary, size: 22),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(clinic.clinicName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-              Text(clinic.ownerName, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              Text('${clinic.city} • ${clinic.clinicType == 'single_doctor' ? 'Single' : 'Multi'}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              Text(clinic.clinicName,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 14,
+                      color: AppColors.textPrimary)),
+              Text(clinic.ownerName,
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary)),
+              Text(
+                  '${clinic.city}  •  ${clinic.clinicType == 'single_doctor' ? 'Single' : 'Multi'}',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textMuted)),
             ],
           ),
         ),
@@ -186,7 +270,8 @@ class _ClinicCardContent extends StatelessWidget {
           children: [
             StatusBadge(clinic.status),
             const SizedBox(height: 4),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+            const Icon(Icons.chevron_right_rounded,
+                size: 18, color: AppColors.textMuted),
           ],
         ),
       ],

@@ -12,7 +12,7 @@ Future<bool> showFormDialog(
   required Future<void> Function() onSubmit,
   String submitLabel = 'Save',
   String cancelLabel = 'Cancel',
-  double maxWidth    = 500,
+  double maxWidth = 500,
 }) async {
   final result = await showDialog<bool>(
     context: context,
@@ -54,26 +54,38 @@ class _FormDialogWidget extends StatefulWidget {
 }
 
 class _FormDialogState extends State<_FormDialogWidget> {
-  bool    _loading = false;
+  bool _loading = false;
   String? _error;
 
   Future<void> _submit() async {
     if (!(widget.formKey.currentState?.validate() ?? false)) return;
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       await widget.onSubmit();
       if (mounted) Navigator.pop(context, true);
     } on ApiException catch (e) {
-      if (mounted) setState(() { _error = e.message; _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.message;
+          _loading = false;
+        });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      backgroundColor: AppColors.glass,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: widget.maxWidth),
@@ -88,12 +100,14 @@ class _FormDialogState extends State<_FormDialogWidget> {
                   Expanded(
                     child: Text(
                       widget.title,
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                          fontSize: 19, fontWeight: FontWeight.w800),
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, size: 20),
-                    onPressed: _loading ? null : () => Navigator.pop(context, false),
+                    onPressed:
+                        _loading ? null : () => Navigator.pop(context, false),
                   ),
                 ],
               ),
@@ -107,7 +121,9 @@ class _FormDialogState extends State<_FormDialogWidget> {
                     color: AppColors.dangerSurface,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
+                  child: Text(_error!,
+                      style: const TextStyle(
+                          color: AppColors.danger, fontSize: 13)),
                 ),
               ],
               const SizedBox(height: 20),
@@ -115,8 +131,10 @@ class _FormDialogState extends State<_FormDialogWidget> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _loading ? null : () => Navigator.pop(context, false),
-                    child: Text(widget.cancelLabel, style: const TextStyle(color: AppColors.textSecondary)),
+                    onPressed:
+                        _loading ? null : () => Navigator.pop(context, false),
+                    child: Text(widget.cancelLabel,
+                        style: const TextStyle(color: AppColors.textSecondary)),
                   ),
                   const SizedBox(width: 8),
                   CustomButton(

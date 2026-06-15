@@ -22,24 +22,41 @@ class ReceptionistsScreen extends StatefulWidget {
 }
 
 class _ReceptionistsScreenState extends State<ReceptionistsScreen> {
-  List<StaffUserModel> _all      = [];
+  List<StaffUserModel> _all = [];
   List<StaffUserModel> _filtered = [];
-  bool    _loading = true;
+  bool _loading = true;
   String? _error;
-  String  _search  = '';
+  String _search = '';
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       _all = await StaffService.getReceptionists();
-      if (mounted) { _applyFilter(); setState(() => _loading = false); }
+      if (mounted) {
+        _applyFilter();
+        setState(() => _loading = false);
+      }
     } on ApiException catch (e) {
-      if (mounted) setState(() { _error = e.message; _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.message;
+          _loading = false;
+        });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
@@ -47,14 +64,16 @@ class _ReceptionistsScreenState extends State<ReceptionistsScreen> {
     final q = _search.toLowerCase();
     _filtered = q.isEmpty
         ? List.from(_all)
-        : _all.where((s) =>
-            s.name.toLowerCase().contains(q) ||
-            s.email.toLowerCase().contains(q)).toList();
+        : _all
+            .where((s) =>
+                s.name.toLowerCase().contains(q) ||
+                s.email.toLowerCase().contains(q))
+            .toList();
   }
 
   Future<void> _showAddDialog() async {
-    final formKey  = GlobalKey<FormState>();
-    final namCtrl  = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final namCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
     String? dialogError;
@@ -72,45 +91,62 @@ class _ReceptionistsScreenState extends State<ReceptionistsScreen> {
                 if (dialogError != null) ...[
                   Container(
                     padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: AppColors.dangerSurface, borderRadius: BorderRadius.circular(8)),
-                    child: Text(dialogError!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
+                    decoration: BoxDecoration(
+                        color: AppColors.dangerSurface,
+                        borderRadius: BorderRadius.circular(8)),
+                    child: Text(dialogError!,
+                        style: const TextStyle(
+                            color: AppColors.danger, fontSize: 13)),
                   ),
                   const SizedBox(height: 12),
                 ],
                 TextFormField(
                   controller: namCtrl,
                   autofocus: true,
-                  decoration: const InputDecoration(labelText: 'Full Name *', border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
+                  decoration: const InputDecoration(
+                      labelText: 'Full Name *',
+                      border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
                   validator: Validators.required,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: emailCtrl,
-                  decoration: const InputDecoration(labelText: 'Email *', border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
+                  decoration: const InputDecoration(
+                      labelText: 'Email *',
+                      border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
                   keyboardType: TextInputType.emailAddress,
                   validator: Validators.email,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: phoneCtrl,
-                  decoration: const InputDecoration(labelText: 'Phone', border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
+                  decoration: const InputDecoration(
+                      labelText: 'Phone',
+                      border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
                   keyboardType: TextInputType.phone,
                 ),
               ]),
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             _AddButton(onPressed: () async {
               if (!(formKey.currentState?.validate() ?? false)) return;
               try {
                 final user = await StaffService.createReceptionist({
-                  'name':  namCtrl.text.trim(),
+                  'name': namCtrl.text.trim(),
                   'email': emailCtrl.text.trim(),
-                  'phone': phoneCtrl.text.trim().isEmpty ? null : phoneCtrl.text.trim(),
+                  'phone': phoneCtrl.text.trim().isEmpty
+                      ? null
+                      : phoneCtrl.text.trim(),
                 });
                 if (ctx.mounted) Navigator.pop(ctx);
                 await _showCreatedCredentials(user);
@@ -123,7 +159,9 @@ class _ReceptionistsScreenState extends State<ReceptionistsScreen> {
         );
       }),
     );
-    namCtrl.dispose(); emailCtrl.dispose(); phoneCtrl.dispose();
+    namCtrl.dispose();
+    emailCtrl.dispose();
+    phoneCtrl.dispose();
   }
 
   Future<void> _showCreatedCredentials(StaffUserModel user) async {
@@ -132,15 +170,22 @@ class _ReceptionistsScreenState extends State<ReceptionistsScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('Receptionist Added'),
-        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Share these credentials. The password is shown only once.',
-              style: TextStyle(fontSize: 13)),
-          const SizedBox(height: 16),
-          _CredRow('Name',     user.name),
-          _CredRow('Email',    user.email),
-          _CredRow('Password', user.tempPassword ?? '—'),
-        ]),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Done'))],
+        content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                  'Share these credentials. The password is shown only once.',
+                  style: TextStyle(fontSize: 13)),
+              const SizedBox(height: 16),
+              _CredRow('Name', user.name),
+              _CredRow('Email', user.email),
+              _CredRow('Password', user.tempPassword ?? '—'),
+            ]),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Done'))
+        ],
       ),
     );
   }
@@ -149,7 +194,8 @@ class _ReceptionistsScreenState extends State<ReceptionistsScreen> {
     final ok = await ConfirmDialog.show(
       context,
       title: 'Deactivate Receptionist',
-      message: 'Deactivate ${staff.name}? They will no longer be able to log in.',
+      message:
+          'Deactivate ${staff.name}? They will no longer be able to log in.',
       confirmLabel: 'Deactivate',
     );
     if (!ok || !mounted) return;
@@ -180,14 +226,20 @@ class _ReceptionistsScreenState extends State<ReceptionistsScreen> {
         children: [
           SearchFilterBar(
             hint: 'Search by name or email…',
-            onSearch: (q) => setState(() { _search = q; _applyFilter(); }),
+            onSearch: (q) => setState(() {
+              _search = q;
+              _applyFilter();
+            }),
             onAdd: _showAddDialog,
             addLabel: 'Add Receptionist',
           ),
           const SizedBox(height: 16),
-          if (_loading)            const LoadingWidget()
-          else if (_error != null) ErrorView(message: _error!, onRetry: _load)
-          else _buildList(),
+          if (_loading)
+            const LoadingWidget()
+          else if (_error != null)
+            ErrorView(message: _error!, onRetry: _load)
+          else
+            _buildList(),
         ],
       ),
     );
@@ -198,7 +250,8 @@ class _ReceptionistsScreenState extends State<ReceptionistsScreen> {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(48),
-          child: Text('No receptionists found.', style: TextStyle(color: AppColors.textSecondary)),
+          child: Text('No receptionists found.',
+              style: TextStyle(color: AppColors.textSecondary)),
         ),
       );
     }
@@ -229,13 +282,18 @@ class _AddButtonState extends State<_AddButton> {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: _loading ? null : () async {
-        setState(() => _loading = true);
-        await widget.onPressed();
-        if (mounted) setState(() => _loading = false);
-      },
+      onPressed: _loading
+          ? null
+          : () async {
+              setState(() => _loading = true);
+              await widget.onPressed();
+              if (mounted) setState(() => _loading = false);
+            },
       child: _loading
-          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2))
           : const Text('Add'),
     );
   }
@@ -245,22 +303,42 @@ class _StaffCardRow extends StatelessWidget {
   final StaffUserModel staff;
   final IconData roleIcon;
   final VoidCallback? onDeactivate;
-  const _StaffCardRow({required this.staff, required this.roleIcon, this.onDeactivate});
+  const _StaffCardRow(
+      {required this.staff, required this.roleIcon, this.onDeactivate});
 
   @override
   Widget build(BuildContext context) {
     return Row(children: [
       Container(
-        width: 44, height: 44,
-        decoration: BoxDecoration(color: AppColors.primarySurface, borderRadius: BorderRadius.circular(10)),
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primary.withValues(alpha: .18),
+              AppColors.primaryLight.withValues(alpha: .08),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.primary.withValues(alpha: .22)),
+        ),
         child: Icon(roleIcon, color: AppColors.primary, size: 22),
       ),
       const SizedBox(width: 12),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(staff.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-        Text(staff.email, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+      Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(staff.name,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        Text(staff.email,
+            style:
+                const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         if (staff.phone != null)
-          Text(staff.phone!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Text(staff.phone!,
+              style: const TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary)),
       ])),
       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
         StatusBadge(staff.status),
@@ -268,10 +346,12 @@ class _StaffCardRow extends StatelessWidget {
         if (onDeactivate != null)
           GestureDetector(
             onTap: onDeactivate,
-            child: const Icon(Icons.block_rounded, size: 16, color: AppColors.danger),
+            child: const Icon(Icons.block_rounded,
+                size: 16, color: AppColors.danger),
           )
         else
-          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+          const Icon(Icons.chevron_right_rounded,
+              color: AppColors.textSecondary),
       ]),
     ]);
   }
@@ -287,8 +367,15 @@ class _CredRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: 70, child: Text('$label:', style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
-        Expanded(child: SelectableText(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+        SizedBox(
+            width: 70,
+            child: Text('$label:',
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary))),
+        Expanded(
+            child: SelectableText(value,
+                style: const TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w600))),
       ]),
     );
   }

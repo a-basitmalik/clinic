@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/dashboard_stat_model.dart';
 import '../constants/app_colors.dart';
+import 'premium_surface.dart';
 
 class DashboardCard extends StatelessWidget {
   final DashboardStat stat;
@@ -9,95 +10,161 @@ class DashboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ColoredGlassCard(
+      color: stat.color,
+      radius: 22,
+      padding: const EdgeInsets.fromLTRB(15, 14, 15, 12),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _IconTile(stat: stat),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      stat.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 10.5,
+                        height: 1.15,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 3),
+                  Icon(
+                    Icons.more_horiz_rounded,
+                    size: 16,
+                    color: stat.color.withValues(alpha: .78),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                stat.value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: stat.color,
+                  fontSize: 26,
+                  height: 1,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -1.3,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                stat.subtitle ?? 'Live overview',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 9.5,
+                  height: 1.1,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              _ProgressLine(color: stat.color),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _IconTile extends StatelessWidget {
+  final DashboardStat stat;
+
+  const _IconTile({required this.stat});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(15),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: .92),
+            stat.color.withValues(alpha: .09),
+          ],
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: .92)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: stat.color.withValues(alpha: .13),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: .95),
+            blurRadius: 8,
+            offset: const Offset(-3, -3),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Icon(stat.icon, color: stat.color, size: 23),
+    );
+  }
+}
+
+class _ProgressLine extends StatelessWidget {
+  final Color color;
+
+  const _ProgressLine({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          width: double.infinity,
+          height: 3,
+          child: Stack(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: stat.color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(stat.icon, color: stat.color, size: 22),
-              ),
-              if (stat.trend != null)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              Positioned.fill(
+                child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: (stat.trendUp ? AppColors.success : AppColors.danger)
-                        .withValues(alpha: 0.1),
+                    color: Colors.white.withValues(alpha: .82),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        stat.trendUp
-                            ? Icons.trending_up_rounded
-                            : Icons.trending_down_rounded,
-                        size: 14,
-                        color:
-                            stat.trendUp ? AppColors.success : AppColors.danger,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        stat.trend!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: stat.trendUp
-                              ? AppColors.success
-                              : AppColors.danger,
-                        ),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: constraints.maxWidth * .35,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [color.withValues(alpha: .48), color],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: .28),
+                        blurRadius: 5,
                       ),
                     ],
                   ),
                 ),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            stat.value,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-              height: 1.1,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            stat.title,
-            style:
-                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-          ),
-          if (stat.subtitle != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              stat.subtitle!,
-              style: const TextStyle(fontSize: 12, color: AppColors.textHint),
-            ),
-          ],
-        ],
-      ),
+        );
+      },
     );
   }
 }

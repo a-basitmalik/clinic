@@ -4,9 +4,9 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/services/api_service.dart';
 import '../../core/utils/helpers.dart';
-import '../../core/widgets/dashboard_card.dart';
 import '../../core/widgets/error_view.dart';
 import '../../core/widgets/loading_widget.dart';
+import '../../core/widgets/premium_dashboard.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../models/api_response_model.dart';
 import '../../models/dashboard_stat_model.dart';
@@ -68,30 +68,35 @@ class _ClinicAdminDashboardState extends State<ClinicAdminDashboard> {
         value: Helpers.formatNumber(d['total_doctors'] as num?),
         icon: Icons.medical_services_rounded,
         color: AppColors.primary,
+        subtitle: 'Active staff',
       ),
       DashboardStat(
         title: 'Total Patients',
         value: Helpers.formatNumber(d['total_patients'] as num?),
         icon: Icons.people_alt_rounded,
-        color: AppColors.accent,
+        color: AppColors.glowBlue,
+        subtitle: 'Registered',
       ),
       DashboardStat(
         title: "Today's Appointments",
         value: Helpers.formatNumber(d['appointments_today'] as num?),
         icon: Icons.calendar_today_rounded,
         color: AppColors.info,
-      ),
-      DashboardStat(
-        title: 'Monthly Revenue',
-        value: Helpers.formatCurrency(d['monthly_revenue'] as num?),
-        icon: Icons.account_balance_wallet_rounded,
-        color: AppColors.success,
+        subtitle: 'Scheduled',
       ),
       DashboardStat(
         title: 'Pending Payments',
         value: Helpers.formatNumber(d['pending_payments'] as num?),
         icon: Icons.pending_rounded,
         color: AppColors.warning,
+        subtitle: 'Awaiting',
+      ),
+      DashboardStat(
+        title: 'Monthly Revenue',
+        value: Helpers.formatCurrency(d['monthly_revenue'] as num?),
+        icon: Icons.account_balance_wallet_rounded,
+        color: AppColors.success,
+        subtitle: 'This month',
       ),
     ];
   }
@@ -124,65 +129,142 @@ class _DashboardBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 260,
-            mainAxisExtent: 150,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
-          itemCount: stats.length,
-          itemBuilder: (_, i) => DashboardCard(stat: stats[i]),
-        ),
-        const SizedBox(height: 24),
-        if (recentAppts.isNotEmpty) ...[
-          const Text('Recent Appointments',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary)),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)
-              ],
+        PremiumDashboardOverview(
+          eyebrow: 'Clinic command center',
+          headline: 'Your clinic, beautifully organized.',
+          description:
+              'Doctors, patients, appointments and revenue at a glance.',
+          heroIcon: Icons.local_hospital_rounded,
+          stats: stats,
+          actions: [
+            DashboardQuickAction(
+              label: 'Manage Doctors',
+              icon: Icons.medical_services_rounded,
+              color: AppColors.primary,
+              onTap: () => Navigator.pushNamed(context, AppRoutes.doctors),
             ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: recentAppts.length,
-              separatorBuilder: (_, __) =>
-                  const Divider(height: 1, color: AppColors.divider),
-              itemBuilder: (_, i) {
-                final a = recentAppts[i];
-                return ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: AppColors.primarySurface,
-                    child: Icon(Icons.person_rounded,
-                        color: AppColors.primary, size: 20),
-                  ),
-                  title: Text(a['patient_name'] as String? ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.w500)),
-                  subtitle: Text(
-                      'Dr. ${a['doctor_name'] ?? ''} • ${Helpers.formatDate(a['appointment_date'] as String?)}'),
-                  trailing: Text(
-                    '#${a['token_number'] ?? ''}',
-                    style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w600),
-                  ),
-                );
-              },
+            DashboardQuickAction(
+              label: 'View Patients',
+              icon: Icons.people_alt_rounded,
+              color: AppColors.glowBlue,
+              onTap: () => Navigator.pushNamed(context, AppRoutes.patients),
+            ),
+            DashboardQuickAction(
+              label: 'Appointments',
+              icon: Icons.calendar_month_rounded,
+              color: AppColors.info,
+              onTap: () =>
+                  Navigator.pushNamed(context, AppRoutes.appointments),
+            ),
+            DashboardQuickAction(
+              label: 'Reports',
+              icon: Icons.bar_chart_rounded,
+              color: AppColors.success,
+              onTap: () => Navigator.pushNamed(context, AppRoutes.reports),
+            ),
+          ],
+        ),
+        const SizedBox(height: 28),
+
+        if (recentAppts.isNotEmpty) ...[
+          PremiumDashboardSection(
+            title: 'Recent Appointments',
+            trailing: TextButton(
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppRoutes.appointments),
+              child: Text('View all',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700)),
+            ),
+            child: Column(
+              children: recentAppts
+                  .take(6)
+                  .map((a) => _AppointmentRow(appt: a))
+                  .toList(),
             ),
           ),
         ],
       ],
+    );
+  }
+}
+
+class _AppointmentRow extends StatelessWidget {
+  final Map appt;
+  const _AppointmentRow({required this.appt});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.glowBlue.withValues(alpha: .18),
+                  AppColors.glowBlue.withValues(alpha: .07),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppColors.glowBlue.withValues(alpha: .22),
+              ),
+            ),
+            child: Center(
+              child: Text(
+                '#${appt['token_number'] ?? '–'}',
+                style: const TextStyle(
+                    color: AppColors.info,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  appt['patient_name'] as String? ?? '—',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Dr. ${appt['doctor_name'] ?? '—'} • ${Helpers.formatDate(appt['appointment_date'] as String?)}',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppColors.primarySurface,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '#${appt['token_number'] ?? '—'}',
+              style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryDark),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

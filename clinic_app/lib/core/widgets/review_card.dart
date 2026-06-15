@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import 'premium_surface.dart';
 
 class ReviewRow {
   final String label;
@@ -25,36 +26,54 @@ class ReviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = accentColor ?? AppColors.primary;
 
-    return Container(
+    return ColoredGlassCard(
+      color: color,
+      radius: 20,
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.08),
+              gradient: LinearGradient(
+                colors: [
+                  color.withValues(alpha: .14),
+                  color.withValues(alpha: .06),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              border: Border(
+                bottom: BorderSide(
+                    color: color.withValues(alpha: .12), width: 1),
               ),
             ),
             child: Row(
               children: [
-                Icon(icon, size: 18, color: color),
-                const SizedBox(width: 8),
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: .14),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: color.withValues(alpha: .25)),
+                  ),
+                  child: Icon(icon, size: 17, color: color),
+                ),
+                const SizedBox(width: 10),
                 Text(
                   title,
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     color: color,
+                    letterSpacing: -.2,
                   ),
                 ),
               ],
@@ -68,7 +87,7 @@ class ReviewCard extends StatelessWidget {
                 final isLast = entry.key == rows.length - 1;
                 final row = entry.value;
                 return Padding(
-                  padding: EdgeInsets.only(bottom: isLast ? 0 : 8),
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -77,8 +96,9 @@ class ReviewCard extends StatelessWidget {
                         child: Text(
                           row.label,
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 12.5,
                             color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -87,7 +107,7 @@ class ReviewCard extends StatelessWidget {
                           row.value.isEmpty ? '—' : row.value,
                           style: const TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary,
                           ),
                         ),

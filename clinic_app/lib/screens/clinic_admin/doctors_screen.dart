@@ -24,24 +24,41 @@ class DoctorsScreen extends StatefulWidget {
 }
 
 class _DoctorsScreenState extends State<DoctorsScreen> {
-  List<DoctorModel> _all      = [];
+  List<DoctorModel> _all = [];
   List<DoctorModel> _filtered = [];
-  bool    _loading = true;
+  bool _loading = true;
   String? _error;
-  String  _search  = '';
+  String _search = '';
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       _all = await DoctorService.getDoctors();
-      if (mounted) { _applyFilter(); setState(() => _loading = false); }
+      if (mounted) {
+        _applyFilter();
+        setState(() => _loading = false);
+      }
     } on ApiException catch (e) {
-      if (mounted) setState(() { _error = e.message; _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.message;
+          _loading = false;
+        });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
@@ -49,10 +66,12 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     final q = _search.toLowerCase();
     _filtered = q.isEmpty
         ? List.from(_all)
-        : _all.where((d) =>
-            d.name.toLowerCase().contains(q) ||
-            (d.specialization?.toLowerCase().contains(q) ?? false) ||
-            (d.departmentName?.toLowerCase().contains(q) ?? false)).toList();
+        : _all
+            .where((d) =>
+                d.name.toLowerCase().contains(q) ||
+                (d.specialization?.toLowerCase().contains(q) ?? false) ||
+                (d.departmentName?.toLowerCase().contains(q) ?? false))
+            .toList();
   }
 
   void _openAdd() {
@@ -73,7 +92,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     final ok = await ConfirmDialog.show(
       context,
       title: 'Deactivate Doctor',
-      message: 'Deactivate Dr. ${doctor.name}? They will no longer be able to log in.',
+      message:
+          'Deactivate Dr. ${doctor.name}? They will no longer be able to log in.',
       confirmLabel: 'Deactivate',
     );
     if (!ok || !mounted) return;
@@ -104,14 +124,20 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
         children: [
           SearchFilterBar(
             hint: 'Search by name, specialization, department…',
-            onSearch: (q) => setState(() { _search = q; _applyFilter(); }),
+            onSearch: (q) => setState(() {
+              _search = q;
+              _applyFilter();
+            }),
             onAdd: _openAdd,
             addLabel: 'Add Doctor',
           ),
           const SizedBox(height: 16),
-          if (_loading)            const LoadingWidget()
-          else if (_error != null) ErrorView(message: _error!, onRetry: _load)
-          else _buildContent(),
+          if (_loading)
+            const LoadingWidget()
+          else if (_error != null)
+            ErrorView(message: _error!, onRetry: _load)
+          else
+            _buildContent(),
         ],
       ),
     );
@@ -124,7 +150,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
         emptyMessage: 'No doctors found.',
         builder: (d) => InfoCard(
           onTap: () => _openEdit(d),
-          child: _DoctorCardContent(doctor: d, onDeactivate: () => _deactivate(d)),
+          child:
+              _DoctorCardContent(doctor: d, onDeactivate: () => _deactivate(d)),
         ),
       );
     }
@@ -132,24 +159,36 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
       rows: _filtered,
       emptyMessage: 'No doctors found.',
       columns: [
-        AppTableColumn(header: 'Name',           cell: (d) => Text(d.name, style: const TextStyle(fontWeight: FontWeight.w500))),
-        AppTableColumn(header: 'Department',     cell: (d) => Text(d.departmentName ?? '—')),
-        AppTableColumn(header: 'Specialization', cell: (d) => Text(d.specialization ?? '—')),
-        AppTableColumn(header: 'Fee',            cell: (d) => Text(Helpers.formatCurrency(d.consultationFee))),
-        AppTableColumn(header: 'Status',         cell: (d) => StatusBadge(d.status)),
-        AppTableColumn(header: 'Actions',        cell: (d) => Row(mainAxisSize: MainAxisSize.min, children: [
-          IconButton(
-            icon: const Icon(Icons.edit_rounded, size: 18, color: AppColors.primary),
-            tooltip: 'Edit',
-            onPressed: () => _openEdit(d),
-          ),
-          if (d.isActive)
-            IconButton(
-              icon: const Icon(Icons.block_rounded, size: 18, color: AppColors.danger),
-              tooltip: 'Deactivate',
-              onPressed: () => _deactivate(d),
-            ),
-        ])),
+        AppTableColumn(
+            header: 'Name',
+            cell: (d) => Text(d.name,
+                style: const TextStyle(fontWeight: FontWeight.w500))),
+        AppTableColumn(
+            header: 'Department', cell: (d) => Text(d.departmentName ?? '—')),
+        AppTableColumn(
+            header: 'Specialization',
+            cell: (d) => Text(d.specialization ?? '—')),
+        AppTableColumn(
+            header: 'Fee',
+            cell: (d) => Text(Helpers.formatCurrency(d.consultationFee))),
+        AppTableColumn(header: 'Status', cell: (d) => StatusBadge(d.status)),
+        AppTableColumn(
+            header: 'Actions',
+            cell: (d) => Row(mainAxisSize: MainAxisSize.min, children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_rounded,
+                        size: 18, color: AppColors.primary),
+                    tooltip: 'Edit',
+                    onPressed: () => _openEdit(d),
+                  ),
+                  if (d.isActive)
+                    IconButton(
+                      icon: const Icon(Icons.block_rounded,
+                          size: 18, color: AppColors.danger),
+                      tooltip: 'Deactivate',
+                      onPressed: () => _deactivate(d),
+                    ),
+                ])),
       ],
     );
   }
@@ -164,17 +203,43 @@ class _DoctorCardContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(children: [
       Container(
-        width: 44, height: 44,
-        decoration: BoxDecoration(color: AppColors.primarySurface, borderRadius: BorderRadius.circular(10)),
-        child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 22),
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primary.withValues(alpha: .18),
+              AppColors.primaryLight.withValues(alpha: .08),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.primary.withValues(alpha: .25)),
+          boxShadow: [
+            BoxShadow(
+                color: AppColors.primary.withValues(alpha: .10),
+                blurRadius: 8,
+                offset: const Offset(0, 3)),
+          ],
+        ),
+        child: const Icon(Icons.person_rounded,
+            color: AppColors.primary, size: 22),
       ),
       const SizedBox(width: 12),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(doctor.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+      Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(doctor.name,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
         if (doctor.departmentName != null)
-          Text(doctor.departmentName!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Text(doctor.departmentName!,
+              style: const TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary)),
         if (doctor.specialization != null)
-          Text(doctor.specialization!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Text(doctor.specialization!,
+              style: const TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary)),
       ])),
       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
         StatusBadge(doctor.status),
@@ -182,10 +247,12 @@ class _DoctorCardContent extends StatelessWidget {
         if (doctor.isActive)
           GestureDetector(
             onTap: onDeactivate,
-            child: const Icon(Icons.block_rounded, size: 16, color: AppColors.danger),
+            child: const Icon(Icons.block_rounded,
+                size: 16, color: AppColors.danger),
           )
         else
-          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+          const Icon(Icons.chevron_right_rounded,
+              color: AppColors.textSecondary),
       ]),
     ]);
   }

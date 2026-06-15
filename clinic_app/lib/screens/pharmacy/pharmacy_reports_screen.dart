@@ -122,7 +122,7 @@ class _PharmacyReportsScreenState extends State<PharmacyReportsScreen> {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent: 240,
-            mainAxisExtent: 150,
+            mainAxisExtent: 168,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16),
         itemCount: stats.length,

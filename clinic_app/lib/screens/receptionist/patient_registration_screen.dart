@@ -13,7 +13,8 @@ class PatientRegistrationScreen extends StatefulWidget {
   const PatientRegistrationScreen({super.key, this.patient});
 
   @override
-  State<PatientRegistrationScreen> createState() => _PatientRegistrationScreenState();
+  State<PatientRegistrationScreen> createState() =>
+      _PatientRegistrationScreenState();
 }
 
 class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
@@ -33,42 +34,56 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
 
   bool get _isEdit => widget.patient != null;
 
-  static const _genders     = ['male', 'female', 'other'];
-  static const _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  static const _genders = ['male', 'female', 'other'];
+  static const _bloodGroups = [
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-'
+  ];
 
   @override
   void initState() {
     super.initState();
     final p = widget.patient;
-    _name      = TextEditingController(text: p?.name      ?? '');
-    _age       = TextEditingController(text: p?.age?.toString() ?? '');
-    _phone     = TextEditingController(text: p?.phone     ?? '');
-    _cnic      = TextEditingController(text: p?.cnic      ?? '');
-    _address   = TextEditingController(text: p?.address   ?? '');
+    _name = TextEditingController(text: p?.name ?? '');
+    _age = TextEditingController(text: p?.age?.toString() ?? '');
+    _phone = TextEditingController(text: p?.phone ?? '');
+    _cnic = TextEditingController(text: p?.cnic ?? '');
+    _address = TextEditingController(text: p?.address ?? '');
     _emergency = TextEditingController(text: p?.emergencyContact ?? '');
-    _gender     = p?.gender;
+    _gender = p?.gender;
     _bloodGroup = p?.bloodGroup;
   }
 
   @override
   void dispose() {
-    for (final c in [_name, _age, _phone, _cnic, _address, _emergency]) c.dispose();
+    for (final c in [_name, _age, _phone, _cnic, _address, _emergency])
+      c.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    setState(() { _saving = true; _error = null; });
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
 
     final body = <String, dynamic>{
-      'name':              _name.text.trim(),
-      'age':               int.tryParse(_age.text.trim()),
-      'gender':            _gender,
-      'phone':             _phone.text.trim().isEmpty ? null : _phone.text.trim(),
-      'cnic':              _cnic.text.trim().isEmpty  ? null : _cnic.text.trim(),
-      'address':           _address.text.trim().isEmpty ? null : _address.text.trim(),
-      'blood_group':       _bloodGroup,
-      'emergency_contact': _emergency.text.trim().isEmpty ? null : _emergency.text.trim(),
+      'name': _name.text.trim(),
+      'age': int.tryParse(_age.text.trim()),
+      'gender': _gender,
+      'phone': _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+      'cnic': _cnic.text.trim().isEmpty ? null : _cnic.text.trim(),
+      'address': _address.text.trim().isEmpty ? null : _address.text.trim(),
+      'blood_group': _bloodGroup,
+      'emergency_contact':
+          _emergency.text.trim().isEmpty ? null : _emergency.text.trim(),
     };
 
     try {
@@ -101,13 +116,17 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(color: AppColors.successSurface, shape: BoxShape.circle),
-            child: const Icon(Icons.check_rounded, color: AppColors.success, size: 36),
+            decoration: const BoxDecoration(
+                color: AppColors.successSurface, shape: BoxShape.circle),
+            child: const Icon(Icons.check_rounded,
+                color: AppColors.success, size: 36),
           ),
           const SizedBox(height: 16),
-          const Text('Patient Registered!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          const Text('Patient Registered!',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
-          const Text('Patient has been registered successfully.', textAlign: TextAlign.center,
+          const Text('Patient has been registered successfully.',
+              textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 16),
           Container(
@@ -116,26 +135,46 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
               color: AppColors.primarySurface,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Text('Patient Code', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-              SelectableText(p.patientCode, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary)),
-            ]),
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Patient Code',
+                      style: TextStyle(
+                          fontSize: 13, color: AppColors.textSecondary)),
+                  SelectableText(p.patientCode,
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary)),
+                ]),
           ),
         ]),
         actions: [
           TextButton(
-            onPressed: () { Navigator.pop(ctx); Navigator.pop(context, p); },
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pop(context, p);
+            },
             child: const Text('Done'),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
               // Clear form for next patient
-              _name.clear(); _age.clear(); _phone.clear(); _cnic.clear();
-              _address.clear(); _emergency.clear();
-              setState(() { _gender = null; _bloodGroup = null; });
+              _name.clear();
+              _age.clear();
+              _phone.clear();
+              _cnic.clear();
+              _address.clear();
+              _emergency.clear();
+              setState(() {
+                _gender = null;
+                _bloodGroup = null;
+              });
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white),
             child: const Text('Register Another'),
           ),
         ],
@@ -160,7 +199,10 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
         elevation: 0,
         title: Text(
           _isEdit ? 'Edit Patient' : 'Register Patient',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+          style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary),
         ),
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
@@ -168,16 +210,20 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (_error != null) ...[
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.dangerSurface, borderRadius: BorderRadius.circular(10)),
-                child: Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
+                decoration: BoxDecoration(
+                    color: AppColors.dangerSurface,
+                    borderRadius: BorderRadius.circular(10)),
+                child: Text(_error!,
+                    style:
+                        const TextStyle(color: AppColors.danger, fontSize: 13)),
               ),
               const SizedBox(height: 16),
             ],
-
             _Label('Basic Information'),
             CustomTextField(
               label: 'Full Name *',
@@ -187,17 +233,22 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
             ),
             const SizedBox(height: 12),
             Row(children: [
-              Expanded(child: CustomTextField(
+              Expanded(
+                  child: CustomTextField(
                 label: 'Age',
                 controller: _age,
                 keyboardType: TextInputType.number,
                 prefixIcon: Icons.cake_rounded,
               )),
               const SizedBox(width: 12),
-              Expanded(child: CustomDropdown<String?>(
+              Expanded(
+                  child: CustomDropdown<String?>(
                 label: 'Gender',
                 value: _gender,
-                items: _genders.map((g) => DropdownMenuItem(value: g, child: Text(_capitalize(g)))).toList(),
+                items: _genders
+                    .map((g) =>
+                        DropdownMenuItem(value: g, child: Text(_capitalize(g))))
+                    .toList(),
                 onChanged: (v) => setState(() => _gender = v),
               )),
             ]),
@@ -205,11 +256,12 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
             CustomDropdown<String?>(
               label: 'Blood Group',
               value: _bloodGroup,
-              items: _bloodGroups.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+              items: _bloodGroups
+                  .map((b) => DropdownMenuItem(value: b, child: Text(b)))
+                  .toList(),
               onChanged: (v) => setState(() => _bloodGroup = v),
             ),
             const SizedBox(height: 20),
-
             _Label('Contact Details'),
             CustomTextField(
               label: 'Phone Number',
@@ -251,7 +303,8 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
     );
   }
 
-  String _capitalize(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+  String _capitalize(String s) =>
+      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
 class _Label extends StatelessWidget {
@@ -260,7 +313,11 @@ class _Label extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-  );
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Text(text,
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary)),
+      );
 }

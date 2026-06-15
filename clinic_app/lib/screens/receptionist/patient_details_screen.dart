@@ -21,42 +21,62 @@ class PatientDetailsScreen extends StatefulWidget {
 
 class _PatientDetailsScreenState extends State<PatientDetailsScreen> {
   PatientModel? _patient;
-  bool    _loading = true;
+  bool _loading = true;
   String? _error;
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       _patient = await PatientService.getPatient(widget.patientId);
       if (mounted) setState(() => _loading = false);
     } on ApiException catch (e) {
-      if (mounted) setState(() { _error = e.message; _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.message;
+          _loading = false;
+        });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
   void _openEdit() {
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => PatientRegistrationScreen(patient: _patient),
-    )).then((updated) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PatientRegistrationScreen(patient: _patient),
+        )).then((updated) {
       if (updated is PatientModel) setState(() => _patient = updated);
     });
   }
 
   void _openBookAppointment() {
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => BookAppointmentScreen(patient: _patient),
-    ));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BookAppointmentScreen(patient: _patient),
+        ));
   }
 
   void _openHistory() {
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => PatientHistoryScreen(patientId: widget.patientId),
-    ));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PatientHistoryScreen(patientId: widget.patientId),
+        ));
   }
 
   @override
@@ -68,7 +88,10 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen> {
         elevation: 0,
         title: Text(
           _patient?.name ?? 'Patient Details',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+          style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary),
         ),
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         actions: [
@@ -107,34 +130,61 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen> {
               backgroundColor: AppColors.primarySurface,
               child: Text(
                 p.name.isNotEmpty ? p.name[0].toUpperCase() : '?',
-                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 22),
+                style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22),
               ),
             ),
             const SizedBox(width: 16),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(p.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: AppColors.primarySurface, borderRadius: BorderRadius.circular(6)),
-                child: Text(p.patientCode, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
-              ),
-              if (p.age != null || p.gender != null) ...[
-                const SizedBox(height: 6),
-                Text(
-                  [if (p.age != null) '${p.age} yrs', if (p.gender != null) Helpers.capitalize(p.gender!)].join(' • '),
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                ),
-              ],
-            ])),
+            Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Text(p.name,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                        color: AppColors.primarySurface,
+                        borderRadius: BorderRadius.circular(6)),
+                    child: Text(p.patientCode,
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary)),
+                  ),
+                  if (p.age != null || p.gender != null) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      [
+                        if (p.age != null) '${p.age} yrs',
+                        if (p.gender != null) Helpers.capitalize(p.gender!)
+                      ].join(' • '),
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ])),
             if (p.bloodGroup != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(color: AppColors.dangerSurface, borderRadius: BorderRadius.circular(8)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                    color: AppColors.dangerSurface,
+                    borderRadius: BorderRadius.circular(8)),
                 child: Column(children: [
-                  const Icon(Icons.water_drop_rounded, color: AppColors.danger, size: 16),
+                  const Icon(Icons.water_drop_rounded,
+                      color: AppColors.danger, size: 16),
                   const SizedBox(height: 2),
-                  Text(p.bloodGroup!, style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.w800, fontSize: 13)),
+                  Text(p.bloodGroup!,
+                      style: const TextStyle(
+                          color: AppColors.danger,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13)),
                 ]),
               ),
           ]),
@@ -143,13 +193,15 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen> {
 
         // Action buttons
         Row(children: [
-          Expanded(child: CustomButton(
+          Expanded(
+              child: CustomButton(
             label: 'Book Appointment',
             icon: Icons.calendar_month_rounded,
             onPressed: _openBookAppointment,
           )),
           const SizedBox(width: 12),
-          Expanded(child: CustomButton(
+          Expanded(
+              child: CustomButton(
             label: 'View History',
             icon: Icons.history_rounded,
             variant: ButtonVariant.secondary,
@@ -160,14 +212,16 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen> {
 
         // Contact info
         _Section('Contact Information', [
-          _InfoRow(Icons.phone_rounded,     'Phone',           p.phone ?? '—'),
-          _InfoRow(Icons.badge_rounded,     'CNIC',            p.cnic ?? '—'),
-          _InfoRow(Icons.location_on_rounded, 'Address',       p.address ?? '—'),
-          _InfoRow(Icons.emergency_rounded, 'Emergency',       p.emergencyContact ?? '—'),
+          _InfoRow(Icons.phone_rounded, 'Phone', p.phone ?? '—'),
+          _InfoRow(Icons.badge_rounded, 'CNIC', p.cnic ?? '—'),
+          _InfoRow(Icons.location_on_rounded, 'Address', p.address ?? '—'),
+          _InfoRow(
+              Icons.emergency_rounded, 'Emergency', p.emergencyContact ?? '—'),
         ]),
         const SizedBox(height: 16),
         _Section('Registration', [
-          _InfoRow(Icons.calendar_today_rounded, 'Registered', Helpers.formatDate(p.createdAt)),
+          _InfoRow(Icons.calendar_today_rounded, 'Registered',
+              Helpers.formatDate(p.createdAt)),
         ]),
       ]),
     );
@@ -185,11 +239,17 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: const BoxDecoration(
             color: AppColors.background,
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12), topRight: Radius.circular(12)),
           ),
-          child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+          child: Text(title,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary)),
         ),
-        Padding(padding: const EdgeInsets.all(16), child: Column(children: rows)),
+        Padding(
+            padding: const EdgeInsets.all(16), child: Column(children: rows)),
       ]),
     );
   }
@@ -208,8 +268,15 @@ class _InfoRow extends StatelessWidget {
       child: Row(children: [
         Icon(icon, size: 16, color: AppColors.textSecondary),
         const SizedBox(width: 10),
-        SizedBox(width: 90, child: Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
-        Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
+        SizedBox(
+            width: 90,
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary))),
+        Expanded(
+            child: Text(value,
+                style: const TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w500))),
       ]),
     );
   }

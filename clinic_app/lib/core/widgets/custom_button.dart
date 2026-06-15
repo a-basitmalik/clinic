@@ -20,30 +20,30 @@ class CustomButton extends StatelessWidget {
     this.loading = false,
     this.icon,
     this.width,
-    this.height = 48,
+    this.height = 50,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDisabled = onPressed == null || loading;
 
-    Widget child = loading
+    final content = loading
         ? const SizedBox(
             width: 20,
             height: 20,
-            child:
-                CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            child: CircularProgressIndicator(
+                strokeWidth: 2.5, color: Colors.white),
           )
         : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
                 Icon(icon, size: 18),
-                const SizedBox(width: 8)
+                const SizedBox(width: 8),
               ],
               Text(label,
                   style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w600)),
+                      fontSize: 15, fontWeight: FontWeight.w700)),
             ],
           );
 
@@ -52,17 +52,45 @@ class CustomButton extends StatelessWidget {
         return SizedBox(
           width: width,
           height: height,
-          child: ElevatedButton(
-            onPressed: isDisabled ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              elevation: 0,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isDisabled ? null : onPressed,
+              borderRadius: BorderRadius.circular(16),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: isDisabled
+                      ? LinearGradient(colors: [
+                          AppColors.primary.withValues(alpha: .45),
+                          AppColors.primaryDark.withValues(alpha: .45),
+                        ])
+                      : const LinearGradient(
+                          colors: [AppColors.primary, AppColors.primaryDark],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: isDisabled
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: .38),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                ),
+                child: Center(
+                  child: DefaultTextStyle(
+                    style: const TextStyle(color: Colors.white),
+                    child: IconTheme(
+                      data: const IconThemeData(color: Colors.white),
+                      child: content,
+                    ),
+                  ),
+                ),
+              ),
             ),
-            child: child,
           ),
         );
 
@@ -70,16 +98,38 @@ class CustomButton extends StatelessWidget {
         return SizedBox(
           width: width,
           height: height,
-          child: ElevatedButton(
-            onPressed: isDisabled ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accent,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              elevation: 0,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isDisabled ? null : onPressed,
+              borderRadius: BorderRadius.circular(16),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.accent, AppColors.accentLight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.accent.withValues(alpha: .35),
+                      blurRadius: 18,
+                      offset: const Offset(0, 7),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: DefaultTextStyle(
+                    style: const TextStyle(color: Colors.white),
+                    child: IconTheme(
+                      data: const IconThemeData(color: Colors.white),
+                      child: content,
+                    ),
+                  ),
+                ),
+              ),
             ),
-            child: child,
           ),
         );
 
@@ -91,11 +141,13 @@ class CustomButton extends StatelessWidget {
             onPressed: isDisabled ? null : onPressed,
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.primary, width: 1.5),
+              backgroundColor: AppColors.glass,
+              side: BorderSide(
+                  color: AppColors.primary.withValues(alpha: .4), width: 1.5),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(16)),
             ),
-            child: child,
+            child: content,
           ),
         );
 
@@ -103,16 +155,38 @@ class CustomButton extends StatelessWidget {
         return SizedBox(
           width: width,
           height: height,
-          child: ElevatedButton(
-            onPressed: isDisabled ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.danger,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              elevation: 0,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isDisabled ? null : onPressed,
+              borderRadius: BorderRadius.circular(16),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.danger, Color(0xFFBD3228)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.danger.withValues(alpha: .35),
+                      blurRadius: 18,
+                      offset: const Offset(0, 7),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: DefaultTextStyle(
+                    style: const TextStyle(color: Colors.white),
+                    child: IconTheme(
+                      data: const IconThemeData(color: Colors.white),
+                      child: content,
+                    ),
+                  ),
+                ),
+              ),
             ),
-            child: child,
           ),
         );
     }

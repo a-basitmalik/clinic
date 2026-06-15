@@ -10,13 +10,21 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = _colors(status.toLowerCase());
-    final label    = _label(status);
+    final label = _label(status);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: fg.withValues(alpha: .25), width: 1),
+      ),
       child: Text(
         label,
-        style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600, color: fg),
+        style: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.w700,
+            color: fg,
+            letterSpacing: .2),
       ),
     );
   }
@@ -45,7 +53,7 @@ class StatusBadge extends StatelessWidget {
         return (AppColors.primarySurface, AppColors.primary);
 
       default:
-        return (AppColors.background, AppColors.textSecondary);
+        return (AppColors.surfaceMuted, AppColors.textSecondary);
     }
   }
 

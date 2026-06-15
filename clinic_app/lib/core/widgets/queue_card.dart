@@ -4,6 +4,7 @@ import '../constants/app_colors.dart';
 import '../utils/helpers.dart';
 import 'status_badge.dart';
 import 'token_badge.dart';
+import 'premium_surface.dart';
 
 class QueueCard extends StatelessWidget {
   final AppointmentModel appointment;
@@ -23,55 +24,120 @@ class QueueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ColoredGlassCard(
+      color: AppColors.primary,
+      radius: 20,
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)
-        ],
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(children: [
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
             TokenBadge(appointment.tokenNumber, size: 52),
             const SizedBox(width: 14),
             Expanded(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                      appointment.patientName.isEmpty
-                          ? 'Patient #${appointment.patientId ?? ''}'
-                          : appointment.patientName,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 15)),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${Helpers.formatTime(appointment.appointmentTime)} • ${appointment.consultationType.replaceAll('_', ' ')}',
+                    appointment.patientName.isEmpty
+                        ? 'Patient #${appointment.patientId ?? ''}'
+                        : appointment.patientName,
                     style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14.5,
+                        color: AppColors.textPrimary),
                   ),
-                  if (appointment.patientPhone != null)
-                    Text(appointment.patientPhone!,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.access_time_rounded,
+                          size: 12, color: AppColors.textMuted),
+                      const SizedBox(width: 4),
+                      Text(
+                        Helpers.formatTime(appointment.appointmentTime),
                         style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
-                ])),
-            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              StatusBadge(appointment.status),
-              const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: onPrimary,
-                icon: Icon(primaryIcon, size: 16),
-                label: Text(primaryLabel),
+                            fontSize: 12, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          appointment.consultationType.replaceAll('_', ' '),
+                          style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.primaryDark,
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (appointment.patientPhone != null) ...[
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(Icons.phone_rounded,
+                            size: 11, color: AppColors.textMuted),
+                        const SizedBox(width: 4),
+                        Text(appointment.patientPhone!,
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.textMuted)),
+                      ],
+                    ),
+                  ],
+                ],
               ),
-            ]),
-          ]),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                StatusBadge(appointment.status),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: onPrimary,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.primary, AppColors.primaryDark],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: .35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(primaryIcon, size: 14, color: Colors.white),
+                        const SizedBox(width: 5),
+                        Text(
+                          primaryLabel,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

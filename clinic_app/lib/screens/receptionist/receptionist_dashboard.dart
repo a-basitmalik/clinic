@@ -4,9 +4,9 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/services/api_service.dart';
 import '../../core/utils/helpers.dart';
-import '../../core/widgets/dashboard_card.dart';
 import '../../core/widgets/error_view.dart';
 import '../../core/widgets/loading_widget.dart';
+import '../../core/widgets/premium_dashboard.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../models/api_response_model.dart';
 import '../../models/dashboard_stat_model.dart';
@@ -68,24 +68,28 @@ class _ReceptionistDashboardState extends State<ReceptionistDashboard> {
         value: Helpers.formatNumber(d['appointments_today'] as num?),
         icon: Icons.calendar_today_rounded,
         color: AppColors.primary,
+        subtitle: 'Scheduled',
       ),
       DashboardStat(
         title: 'Waiting Patients',
         value: Helpers.formatNumber(d['waiting'] as num?),
         icon: Icons.hourglass_bottom_rounded,
         color: AppColors.warning,
+        subtitle: 'In queue',
       ),
       DashboardStat(
         title: 'New Patients',
         value: Helpers.formatNumber(d['new_patients_today'] as num?),
         icon: Icons.person_add_rounded,
-        color: AppColors.accent,
+        color: AppColors.glowBlue,
+        subtitle: 'Registered today',
       ),
       DashboardStat(
         title: 'Collected Today',
         value: Helpers.formatCurrency(d['collected_today'] as num?),
         icon: Icons.payments_rounded,
         color: AppColors.success,
+        subtitle: 'Total collected',
       ),
     ];
   }
@@ -117,75 +121,150 @@ class _DashboardBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 240,
-            mainAxisExtent: 150,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
-          itemCount: stats.length,
-          itemBuilder: (_, i) => DashboardCard(stat: stats[i]),
-        ),
-        const SizedBox(height: 24),
-        if (appointments.isNotEmpty) ...[
-          const Text("Today's Appointments",
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary)),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)
-              ],
+        PremiumDashboardOverview(
+          eyebrow: 'Front desk overview',
+          headline: 'A smoother day starts here.',
+          description:
+              'Manage arrivals, appointments, patients and billing.',
+          heroIcon: Icons.support_agent_rounded,
+          stats: stats,
+          actions: [
+            DashboardQuickAction(
+              label: 'Book Appointment',
+              icon: Icons.calendar_month_rounded,
+              color: AppColors.primary,
+              onTap: () =>
+                  Navigator.pushNamed(context, AppRoutes.bookAppointment),
             ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: appointments.length,
-              separatorBuilder: (_, __) =>
-                  const Divider(height: 1, color: AppColors.divider),
-              itemBuilder: (_, i) {
-                final a = appointments[i];
-                return ListTile(
-                  leading: CircleAvatar(
-                    radius: 18,
-                    backgroundColor: AppColors.primarySurface,
-                    child: Text(
-                      '${a['token_number'] ?? ''}',
-                      style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13),
-                    ),
-                  ),
-                  title: Text(a['patient_name'] as String? ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.w500)),
-                  subtitle: Text(
-                      'Dr. ${a['doctor_name'] ?? ''} • ${Helpers.formatTime(a['appointment_time'] as String?)}'),
-                  trailing: Text(
-                    a['payment_status'] == 'paid' ? 'Paid' : 'Unpaid',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: a['payment_status'] == 'paid'
-                          ? AppColors.success
-                          : AppColors.warning,
-                    ),
-                  ),
-                );
-              },
+            DashboardQuickAction(
+              label: 'Register Patient',
+              icon: Icons.person_add_rounded,
+              color: AppColors.glowBlue,
+              onTap: () =>
+                  Navigator.pushNamed(context, AppRoutes.recPatients),
+            ),
+            DashboardQuickAction(
+              label: 'Token Queue',
+              icon: Icons.queue_rounded,
+              color: AppColors.warning,
+              onTap: () =>
+                  Navigator.pushNamed(context, AppRoutes.tokenQueue),
+            ),
+            DashboardQuickAction(
+              label: 'Billing',
+              icon: Icons.payments_rounded,
+              color: AppColors.success,
+              onTap: () => Navigator.pushNamed(context, AppRoutes.billing),
+            ),
+          ],
+        ),
+        const SizedBox(height: 28),
+
+        if (appointments.isNotEmpty) ...[
+          PremiumDashboardSection(
+            title: "Today's Appointments",
+            trailing: TextButton(
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppRoutes.tokenQueue),
+              child: Text('View queue',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700)),
+            ),
+            child: Column(
+              children: appointments
+                  .take(6)
+                  .map((a) => _AppointmentRow(appt: a))
+                  .toList(),
             ),
           ),
         ],
       ],
+    );
+  }
+}
+
+class _AppointmentRow extends StatelessWidget {
+  final Map appt;
+  const _AppointmentRow({required this.appt});
+
+  @override
+  Widget build(BuildContext context) {
+    final isPaid = appt['payment_status'] == 'paid';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: .18),
+                  AppColors.primaryLight.withValues(alpha: .07),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: .22),
+              ),
+            ),
+            child: Center(
+              child: Text(
+                '${appt['token_number'] ?? '–'}',
+                style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  appt['patient_name'] as String? ?? '—',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Dr. ${appt['doctor_name'] ?? '—'} • ${Helpers.formatTime(appt['appointment_time'] as String?)}',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: isPaid ? AppColors.successSurface : AppColors.warningSurface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isPaid
+                    ? AppColors.success.withValues(alpha: .25)
+                    : AppColors.warning.withValues(alpha: .25),
+              ),
+            ),
+            child: Text(
+              isPaid ? 'Paid' : 'Unpaid',
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isPaid ? AppColors.success : AppColors.warning),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

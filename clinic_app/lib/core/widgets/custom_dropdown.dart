@@ -22,8 +22,8 @@ class CustomDropdown<T> extends StatelessWidget {
   });
 
   static const _inputBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.all(Radius.circular(10)),
-    borderSide: BorderSide(color: AppColors.border),
+    borderRadius: BorderRadius.all(Radius.circular(16)),
+    borderSide: BorderSide(color: Colors.white),
   );
 
   @override
@@ -44,21 +44,21 @@ class CustomDropdown<T> extends StatelessWidget {
             ? Icon(prefixIcon, size: 20, color: AppColors.textSecondary)
             : null,
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: AppColors.glass,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: _inputBorder,
         enabledBorder: _inputBorder,
         focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10)),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
           borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10)),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
           borderSide: BorderSide(color: AppColors.danger),
         ),
         focusedErrorBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10)),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
           borderSide: BorderSide(color: AppColors.danger, width: 1.5),
         ),
         labelStyle:

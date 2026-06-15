@@ -16,40 +16,60 @@ class ReceptionistPatientsScreen extends StatefulWidget {
   const ReceptionistPatientsScreen({super.key});
 
   @override
-  State<ReceptionistPatientsScreen> createState() => _ReceptionistPatientsScreenState();
+  State<ReceptionistPatientsScreen> createState() =>
+      _ReceptionistPatientsScreenState();
 }
 
-class _ReceptionistPatientsScreenState extends State<ReceptionistPatientsScreen> {
+class _ReceptionistPatientsScreenState
+    extends State<ReceptionistPatientsScreen> {
   List<PatientModel> _patients = [];
-  bool    _loading = true;
+  bool _loading = true;
   String? _error;
-  String  _search  = '';
+  String _search = '';
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   Future<void> _load({String? search}) async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       _patients = await PatientService.getPatients(search: search);
       if (mounted) setState(() => _loading = false);
     } on ApiException catch (e) {
-      if (mounted) setState(() { _error = e.message; _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.message;
+          _loading = false;
+        });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
   void _openDetail(PatientModel p) {
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => PatientDetailsScreen(patientId: p.id),
-    )).then((_) => _load(search: _search.isEmpty ? null : _search));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PatientDetailsScreen(patientId: p.id),
+        )).then((_) => _load(search: _search.isEmpty ? null : _search));
   }
 
   void _openRegister() {
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => const PatientRegistrationScreen(),
-    )).then((_) => _load(search: _search.isEmpty ? null : _search));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const PatientRegistrationScreen(),
+        )).then((_) => _load(search: _search.isEmpty ? null : _search));
   }
 
   @override
@@ -68,9 +88,12 @@ class _ReceptionistPatientsScreenState extends State<ReceptionistPatientsScreen>
           addLabel: 'Register Patient',
         ),
         const SizedBox(height: 16),
-        if (_loading)            const LoadingWidget()
-        else if (_error != null) ErrorView(message: _error!, onRetry: _load)
-        else _buildList(),
+        if (_loading)
+          const LoadingWidget()
+        else if (_error != null)
+          ErrorView(message: _error!, onRetry: _load)
+        else
+          _buildList(),
       ]),
     );
   }
@@ -81,19 +104,56 @@ class _ReceptionistPatientsScreenState extends State<ReceptionistPatientsScreen>
         child: Padding(
           padding: const EdgeInsets.all(48),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.people_alt_rounded, size: 56, color: AppColors.textHint),
-            const SizedBox(height: 12),
-            const Text('No patients found.', style: TextStyle(fontSize: 15, color: AppColors.textSecondary)),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: .16),
+                    AppColors.primaryLight.withValues(alpha: .07),
+                  ],
+                ),
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: AppColors.primary.withValues(alpha: .22)),
+              ),
+              child: const Icon(Icons.people_alt_rounded,
+                  size: 32, color: AppColors.primary),
+            ),
             const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _openRegister,
-              icon: const Icon(Icons.person_add_rounded),
-              label: const Text('Register New Patient'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            const Text('No patients found.',
+                style: TextStyle(fontSize: 15, color: AppColors.textSecondary)),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: _openRegister,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 22, vertical: 13),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                        color: AppColors.primary.withValues(alpha: .32),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5)),
+                  ],
+                ),
+                child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.person_add_rounded,
+                      color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text('Register New Patient',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14)),
+                ]),
               ),
             ),
           ]),
@@ -123,65 +183,123 @@ class _PatientListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = patient;
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: .88),
+              Colors.white.withValues(alpha: .65),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          child: Row(children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: AppColors.primarySurface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.primary.withValues(alpha: .15)),
+          boxShadow: [
+            BoxShadow(
+                color: AppColors.primary.withValues(alpha: .05),
+                blurRadius: 12,
+                offset: const Offset(0, 3)),
+          ],
+        ),
+        child: Row(children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: .22),
+                  AppColors.primaryLight.withValues(alpha: .10),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+              border:
+                  Border.all(color: AppColors.primary.withValues(alpha: .28)),
+            ),
+            child: Center(
               child: Text(
                 p.name.isNotEmpty ? p.name[0].toUpperCase() : '?',
-                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 16),
+                style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16),
               ),
             ),
+          ),
             const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-              const SizedBox(height: 2),
-              Row(children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(p.patientCode, style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
-                ),
-                if (p.phone != null) ...[
-                  const SizedBox(width: 8),
-                  Text(p.phone!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                ],
-              ]),
-              if (p.age != null || p.gender != null) ...[
-                const SizedBox(height: 2),
-                Text(
-                  [if (p.age != null) '${p.age} yrs', if (p.gender != null) Helpers.capitalize(p.gender!)].join(' • '),
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-              ],
-            ])),
+            Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Text(p.name,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 14)),
+                  const SizedBox(height: 2),
+                  Row(children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary.withValues(alpha: .14),
+                            AppColors.primaryLight.withValues(alpha: .06),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                            color: AppColors.primary.withValues(alpha: .22)),
+                      ),
+                      child: Text(p.patientCode,
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    if (p.phone != null) ...[
+                      const SizedBox(width: 8),
+                      Text(p.phone!,
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary)),
+                    ],
+                  ]),
+                  if (p.age != null || p.gender != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      [
+                        if (p.age != null) '${p.age} yrs',
+                        if (p.gender != null) Helpers.capitalize(p.gender!)
+                      ].join(' • '),
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ])),
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               if (p.bloodGroup != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(color: AppColors.dangerSurface, borderRadius: BorderRadius.circular(4)),
-                  child: Text(p.bloodGroup!, style: const TextStyle(fontSize: 11, color: AppColors.danger, fontWeight: FontWeight.w600)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                      color: AppColors.dangerSurface,
+                      borderRadius: BorderRadius.circular(4)),
+                  child: Text(p.bloodGroup!,
+                      style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.danger,
+                          fontWeight: FontWeight.w600)),
                 ),
               const SizedBox(height: 4),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+              const Icon(Icons.chevron_right_rounded,
+                  size: 18, color: AppColors.textMuted),
             ]),
-          ]),
-        ),
+        ]),
       ),
     );
   }

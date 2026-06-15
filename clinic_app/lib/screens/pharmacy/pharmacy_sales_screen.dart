@@ -52,12 +52,36 @@ class _PharmacySalesScreenState extends State<PharmacySalesScreen> {
         title: 'Medicine Sales',
         currentRoute: AppRoutes.sales,
         body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          ElevatedButton.icon(
-            onPressed: () => Navigator.push(context,
+          GestureDetector(
+            onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const CreateSaleScreen()))
                 .then((_) => _load()),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Walk-in Sale'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                      color: AppColors.primary.withValues(alpha: .35),
+                      blurRadius: 14,
+                      offset: const Offset(0, 5)),
+                ],
+              ),
+              child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('Walk-in Sale',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14)),
+              ]),
+            ),
           ),
           const SizedBox(height: 16),
           if (_loading)
@@ -101,15 +125,80 @@ class _PharmacySalesScreenState extends State<PharmacySalesScreen> {
         ]),
       );
 
-  Widget _card(PharmacySaleModel s) => Card(
-          child: ListTile(
-        title: Text('#${s.id} • ${Helpers.formatCurrency(s.totalAmount)}'),
-        subtitle: Text(
-            '${s.patientName ?? 'Walk-in'} • ${Helpers.formatDateTime(s.createdAt)}'),
-        trailing: IconButton(
-            icon: const Icon(Icons.receipt_long_rounded),
-            onPressed: () => _invoice(s)),
-      ));
+  Widget _card(PharmacySaleModel s) => Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: .88),
+              Colors.white.withValues(alpha: .65),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.primary.withValues(alpha: .18)),
+          boxShadow: [
+            BoxShadow(
+                color: AppColors.primary.withValues(alpha: .05),
+                blurRadius: 10,
+                offset: const Offset(0, 3)),
+          ],
+        ),
+        child: Row(children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: .16),
+                  AppColors.primaryLight.withValues(alpha: .07),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.primary.withValues(alpha: .2)),
+            ),
+            child: const Icon(Icons.receipt_rounded,
+                color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              Text('#${s.id}  •  ${Helpers.formatCurrency(s.totalAmount)}',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: AppColors.textPrimary)),
+              Text(
+                '${s.patientName ?? 'Walk-in'}  •  ${Helpers.formatDateTime(s.createdAt)}',
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary),
+              ),
+            ]),
+          ),
+          GestureDetector(
+            onTap: () => _invoice(s),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: .10),
+                borderRadius: BorderRadius.circular(10),
+                border:
+                    Border.all(color: AppColors.primary.withValues(alpha: .2)),
+              ),
+              child: const Icon(Icons.receipt_long_rounded,
+                  color: AppColors.primary, size: 18),
+            ),
+          ),
+        ]),
+      );
 
   void _invoice(PharmacySaleModel s) => Navigator.push(
       context, MaterialPageRoute(builder: (_) => InvoiceScreen(saleId: s.id)));

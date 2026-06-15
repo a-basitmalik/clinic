@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
@@ -14,7 +15,6 @@ class _SidebarItem {
 
 class AppSidebar extends StatelessWidget {
   final String currentRoute;
-
   const AppSidebar({super.key, required this.currentRoute});
 
   static List<_SidebarItem> _itemsForRole(String role) {
@@ -95,8 +95,7 @@ class AppSidebar extends StatelessWidget {
               AppRoutes.receptionistDashboard),
           _SidebarItem(
               'Patients', Icons.people_alt_rounded, AppRoutes.recPatients),
-          _SidebarItem(
-              'Token Queue', Icons.queue_rounded, AppRoutes.tokenQueue),
+          _SidebarItem('Token Queue', Icons.queue_rounded, AppRoutes.tokenQueue),
           _SidebarItem('Book Appointment', Icons.calendar_month_rounded,
               AppRoutes.bookAppointment),
           _SidebarItem('Billing', Icons.payments_rounded, AppRoutes.billing),
@@ -149,121 +148,254 @@ class AppSidebar extends StatelessWidget {
     final user = auth.currentUser;
     final role = user?.role ?? '';
     final items = _itemsForRole(role);
+    final roleColors = AppColors.roleGradient(role);
 
-    return Container(
-      width: 260,
-      color: AppColors.sidebarBg,
-      child: Column(
-        children: [
-          // Header
-          Container(
-            color: AppColors.sidebarHeader,
-            padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-            child: Row(
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          width: 260,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF0D2137),
+                const Color(0xFF0A1E30),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: .08),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0D2137).withValues(alpha: .40),
+                blurRadius: 48,
+                spreadRadius: -8,
+                offset: const Offset(0, 20),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 18),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withValues(alpha: .06),
+                      Colors.transparent,
+                    ],
+                  ),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.white.withValues(alpha: .07),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppColors.primary, AppColors.primaryDark],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: .40),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.local_hospital_rounded,
+                          color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'MedCare',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              letterSpacing: -.3,
+                            ),
+                          ),
+                          Text(
+                            'Clinic Management',
+                            style: TextStyle(
+                              color: Color(0xFF6A9BAA),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // User card
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(8),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: .06),
+                        Colors.white.withValues(alpha: .03),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: .08),
+                    ),
                   ),
-                  child: const Icon(Icons.local_hospital_rounded,
-                      color: Colors.white, size: 20),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Text(
-                        'CMS',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16),
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: roleColors,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: .25),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            user != null && user.name.isNotEmpty
+                                ? user.name[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
                       ),
-                      Text(
-                        'Clinic Management',
-                        style: TextStyle(
-                            color: AppColors.sidebarText, fontSize: 11),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user?.name ?? '',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              AppStrings.roleLabel(role),
+                              style: const TextStyle(
+                                color: Color(0xFF5A9DAA),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: AppColors.success,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.success.withValues(alpha: .5),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
 
-          // User info
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: AppColors.sidebarActive,
+              // Nav label
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
                   child: Text(
-                    user != null && user.name.isNotEmpty
-                        ? user.name[0].toUpperCase()
-                        : '?',
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w600),
+                    'NAVIGATION',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: .28),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user?.name ?? '',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        AppStrings.roleLabel(role),
-                        style: const TextStyle(
-                            color: AppColors.sidebarText, fontSize: 11),
-                      ),
-                    ],
+              ),
+
+              // Nav items
+              Expanded(
+                child: ListView(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  children: items
+                      .map((item) => _NavItem(
+                            item: item,
+                            active: currentRoute == item.route,
+                          ))
+                      .toList(),
+                ),
+              ),
+
+              // Bottom section
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: Colors.white.withValues(alpha: .07)),
                   ),
                 ),
-              ],
-            ),
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+                child: Column(
+                  children: [
+                    _NavItem(
+                      item: _SidebarItem(AppStrings.myProfile,
+                          Icons.person_outline_rounded, AppRoutes.profile),
+                      active: currentRoute == AppRoutes.profile,
+                    ),
+                    _LogoutTile(),
+                  ],
+                ),
+              ),
+            ],
           ),
-
-          const Divider(color: AppColors.sidebarHover, height: 1),
-          const SizedBox(height: 8),
-
-          // Nav items
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              children: items
-                  .map((item) => _NavItem(
-                        item: item,
-                        active: currentRoute == item.route,
-                      ))
-                  .toList(),
-            ),
-          ),
-
-          // Bottom: profile + logout
-          const Divider(color: AppColors.sidebarHover, height: 1),
-          _NavItem(
-            item: _SidebarItem(AppStrings.myProfile,
-                Icons.person_outline_rounded, AppRoutes.profile),
-            active: currentRoute == AppRoutes.profile,
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-            child: _LogoutTile(),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -281,29 +413,69 @@ class _NavItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 2),
       decoration: active
           ? BoxDecoration(
-              color: AppColors.sidebarActive,
-              borderRadius: BorderRadius.circular(8))
+              gradient: const LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryDark],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: .35),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            )
           : null,
-      child: ListTile(
-        dense: true,
-        leading: Icon(
-          item.icon,
-          size: 20,
-          color: active ? AppColors.sidebarIconActive : AppColors.sidebarIcon,
-        ),
-        title: Text(
-          item.label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-            color: active ? AppColors.sidebarTextActive : AppColors.sidebarText,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: active
+              ? null
+              : () => Navigator.pushReplacementNamed(context, item.route),
+          hoverColor: Colors.white.withValues(alpha: .06),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            child: Row(
+              children: [
+                Icon(
+                  item.icon,
+                  size: 18,
+                  color: active
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: .45),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    item.label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight:
+                          active ? FontWeight.w700 : FontWeight.w400,
+                      color: active
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: .55),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (active)
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .6),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        hoverColor: AppColors.sidebarHover,
-        onTap: active
-            ? null
-            : () => Navigator.pushReplacementNamed(context, item.route),
       ),
     );
   }
@@ -312,24 +484,37 @@ class _NavItem extends StatelessWidget {
 class _LogoutTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      dense: true,
-      leading: const Icon(Icons.logout_rounded,
-          size: 20, color: AppColors.sidebarIcon),
-      title: const Text(
-        AppStrings.logout,
-        style: TextStyle(fontSize: 13, color: AppColors.sidebarText),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () async {
+          final auth = context.read<AuthService>();
+          await auth.logout();
+          if (context.mounted) {
+            Navigator.pushNamedAndRemoveUntil(
+                context, AppRoutes.login, (_) => false);
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          child: Row(
+            children: [
+              Icon(Icons.logout_rounded,
+                  size: 18, color: AppColors.danger.withValues(alpha: .80)),
+              const SizedBox(width: 12),
+              Text(
+                AppStrings.logout,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.danger.withValues(alpha: .80),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      hoverColor: AppColors.sidebarHover,
-      onTap: () async {
-        final auth = context.read<AuthService>();
-        await auth.logout();
-        if (context.mounted) {
-          Navigator.pushNamedAndRemoveUntil(
-              context, AppRoutes.login, (_) => false);
-        }
-      },
     );
   }
 }

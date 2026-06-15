@@ -15,22 +15,28 @@ class TokenBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: c,
+        gradient: LinearGradient(
+          colors: [c, c.withValues(alpha: .75)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-              color: c.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 3))
+            color: c.withValues(alpha: .38),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
         ],
+        border: Border.all(color: Colors.white.withValues(alpha: .30), width: 2),
       ),
       child: Center(
         child: Text(
           '$token',
           style: TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.w800,
-            fontSize: size * 0.38,
+            fontWeight: FontWeight.w900,
+            fontSize: size * 0.36,
             height: 1,
           ),
         ),
@@ -52,16 +58,21 @@ class TokenBadgeSmall extends StatelessWidget {
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: c.withValues(alpha: 0.12),
+        gradient: LinearGradient(
+          colors: [c.withValues(alpha: .18), c.withValues(alpha: .08)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         shape: BoxShape.circle,
+        border: Border.all(color: c.withValues(alpha: .28)),
       ),
       child: Center(
         child: Text(
           '$token',
           style: TextStyle(
             color: c,
-            fontWeight: FontWeight.w700,
-            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
           ),
         ),
       ),

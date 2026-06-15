@@ -6,6 +6,7 @@ import '../../core/widgets/confirm_dialog.dart';
 import '../../core/widgets/error_view.dart';
 import '../../core/widgets/form_dialog.dart';
 import '../../core/widgets/loading_widget.dart';
+import '../../core/widgets/premium_surface.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../core/widgets/search_filter_bar.dart';
 import '../../models/api_response_model.dart';
@@ -20,24 +21,41 @@ class DepartmentsScreen extends StatefulWidget {
 }
 
 class _DepartmentsScreenState extends State<DepartmentsScreen> {
-  List<DepartmentModel> _all      = [];
+  List<DepartmentModel> _all = [];
   List<DepartmentModel> _filtered = [];
-  bool    _loading = true;
+  bool _loading = true;
   String? _error;
-  String  _search  = '';
+  String _search = '';
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       _all = await DepartmentService.getDepartments();
-      if (mounted) { _applyFilter(); setState(() => _loading = false); }
+      if (mounted) {
+        _applyFilter();
+        setState(() => _loading = false);
+      }
     } on ApiException catch (e) {
-      if (mounted) setState(() { _error = e.message; _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.message;
+          _loading = false;
+        });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
@@ -49,7 +67,7 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> {
   }
 
   Future<void> _showForm({DepartmentModel? dept}) async {
-    final ctrl   = TextEditingController(text: dept?.name ?? '');
+    final ctrl = TextEditingController(text: dept?.name ?? '');
     final formKey = GlobalKey<FormState>();
 
     await showFormDialog(
@@ -113,14 +131,20 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> {
         children: [
           SearchFilterBar(
             hint: 'Search departments…',
-            onSearch: (q) => setState(() { _search = q; _applyFilter(); }),
+            onSearch: (q) => setState(() {
+              _search = q;
+              _applyFilter();
+            }),
             onAdd: () => _showForm(),
             addLabel: 'Add Department',
           ),
           const SizedBox(height: 16),
-          if (_loading)            const LoadingWidget()
-          else if (_error != null) ErrorView(message: _error!, onRetry: _load)
-          else _buildList(),
+          if (_loading)
+            const LoadingWidget()
+          else if (_error != null)
+            ErrorView(message: _error!, onRetry: _load)
+          else
+            _buildList(),
         ],
       ),
     );
@@ -131,49 +155,102 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(48),
-          child: Text('No departments found.', style: TextStyle(color: AppColors.textSecondary)),
+          child: Text('No departments found.',
+              style: TextStyle(color: AppColors.textSecondary)),
         ),
       );
     }
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
+    return GlassPanel(
+      radius: 18,
       child: Column(
         children: _filtered.asMap().entries.map((entry) {
-          final i    = entry.key;
+          final i = entry.key;
           final dept = entry.value;
           final isLast = i == _filtered.length - 1;
           return Column(children: [
-            ListTile(
-              leading: Container(
-                width: 38, height: 38,
-                decoration: BoxDecoration(color: AppColors.primarySurface, borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.category_rounded, color: AppColors.primary, size: 20),
-              ),
-              title: Text(dept.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-              subtitle: dept.doctorCount != null
-                  ? Text('${dept.doctorCount} doctor${dept.doctorCount == 1 ? '' : 's'}',
-                      style: const TextStyle(fontSize: 12))
-                  : null,
-              trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                IconButton(
-                  icon: const Icon(Icons.edit_rounded, size: 18, color: AppColors.primary),
-                  tooltip: 'Edit',
-                  onPressed: () => _showForm(dept: dept),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withValues(alpha: .18),
+                        AppColors.primaryLight.withValues(alpha: .08),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: AppColors.primary.withValues(alpha: .25)),
+                  ),
+                  child: const Icon(Icons.category_rounded,
+                      color: AppColors.primary, size: 20),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_rounded, size: 18, color: AppColors.danger),
-                  tooltip: 'Delete',
-                  onPressed: () => _delete(dept),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text(dept.name,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            color: AppColors.textPrimary)),
+                    if (dept.doctorCount != null)
+                      Text(
+                          '${dept.doctorCount} doctor${dept.doctorCount == 1 ? '' : 's'}',
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary)),
+                  ]),
                 ),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  _ActionIcon(
+                    icon: Icons.edit_rounded,
+                    color: AppColors.primary,
+                    onTap: () => _showForm(dept: dept),
+                  ),
+                  const SizedBox(width: 6),
+                  _ActionIcon(
+                    icon: Icons.delete_rounded,
+                    color: AppColors.danger,
+                    onTap: () => _delete(dept),
+                  ),
+                ]),
               ]),
             ),
-            if (!isLast) const Divider(height: 1, color: AppColors.divider),
+            if (!isLast)
+              Divider(height: 1, color: AppColors.divider.withValues(alpha: .5)),
           ]);
         }).toList(),
+      ),
+    );
+  }
+}
+
+class _ActionIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  const _ActionIcon(
+      {required this.icon, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: .10),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: .22)),
+        ),
+        child: Icon(icon, color: color, size: 16),
       ),
     );
   }

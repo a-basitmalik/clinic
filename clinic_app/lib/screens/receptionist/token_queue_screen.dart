@@ -256,26 +256,42 @@ class _QueueCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final a = appointment;
+    final accent = _tokenColor(a.status);
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _borderColor(a.status)),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: .85),
+            Colors.white.withValues(alpha: .65),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: accent.withValues(alpha: .28), width: 1.5),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)
+          BoxShadow(
+              color: accent.withValues(alpha: .08),
+              blurRadius: 18,
+              spreadRadius: 0,
+              offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: .04),
+              blurRadius: 6,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(18),
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(16),
             child: Row(children: [
-              TokenBadge(a.tokenNumber, size: 52, color: _tokenColor(a.status)),
+              TokenBadge(a.tokenNumber, size: 52, color: accent),
               const SizedBox(width: 14),
               Expanded(
                   child: Column(
@@ -285,7 +301,8 @@ class _QueueCard extends StatelessWidget {
                       Expanded(
                           child: Text(a.patientName,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.w600, fontSize: 15))),
+                                  fontWeight: FontWeight.w700, fontSize: 15,
+                                  color: AppColors.textPrimary))),
                       StatusBadge(a.status),
                     ]),
                     const SizedBox(height: 4),
@@ -294,8 +311,8 @@ class _QueueCard extends StatelessWidget {
                             fontSize: 13, color: AppColors.textSecondary)),
                     Text(Helpers.formatTime(a.appointmentTime),
                         style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
-                    const SizedBox(height: 8),
+                            fontSize: 12, color: AppColors.textMuted)),
+                    const SizedBox(height: 10),
                     _StatusButtons(status: a.status, onChanged: onStatusChange),
                   ])),
             ]),
@@ -322,18 +339,6 @@ class _QueueCard extends StatelessWidget {
     }
   }
 
-  Color _borderColor(String status) {
-    switch (status) {
-      case 'in_consultation':
-        return AppColors.primary.withValues(alpha: 0.4);
-      case 'completed':
-        return AppColors.success.withValues(alpha: 0.3);
-      case 'cancelled':
-        return AppColors.danger.withValues(alpha: 0.3);
-      default:
-        return AppColors.border;
-    }
-  }
 }
 
 class _StatusButtons extends StatelessWidget {
@@ -365,15 +370,26 @@ class _Btn extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          gradient: LinearGradient(
+            colors: [color, color.withValues(alpha: .75)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+                color: color.withValues(alpha: .28),
+                blurRadius: 8,
+                offset: const Offset(0, 3)),
+          ],
         ),
         child: Text(label,
-            style: TextStyle(
-                fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+            style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.white)),
       ),
     );
   }
@@ -388,13 +404,27 @@ class _DoctorFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final active = value != null;
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
+        gradient: active
+            ? LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: .13),
+                  AppColors.primaryLight.withValues(alpha: .05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: active ? null : AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: active
+                ? AppColors.primary.withValues(alpha: .35)
+                : AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int?>(
@@ -410,9 +440,13 @@ class _DoctorFilter extends StatelessWidget {
                     style: const TextStyle(fontSize: 13)))),
           ],
           onChanged: onChanged,
-          style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
-          icon: const Icon(Icons.expand_more_rounded,
-              size: 18, color: AppColors.textSecondary),
+          style: TextStyle(
+              fontSize: 13,
+              color: active ? AppColors.primary : AppColors.textPrimary,
+              fontWeight: active ? FontWeight.w600 : FontWeight.normal),
+          icon: Icon(Icons.expand_more_rounded,
+              size: 18,
+              color: active ? AppColors.primary : AppColors.textSecondary),
         ),
       ),
     );
@@ -426,13 +460,27 @@ class _StatusFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final active = value != null;
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
+        gradient: active
+            ? LinearGradient(
+                colors: [
+                  AppColors.info.withValues(alpha: .13),
+                  AppColors.info.withValues(alpha: .05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: active ? null : AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: active
+                ? AppColors.info.withValues(alpha: .35)
+                : AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
@@ -448,9 +496,13 @@ class _StatusFilter extends StatelessWidget {
             DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
           ],
           onChanged: onChanged,
-          style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
-          icon: const Icon(Icons.expand_more_rounded,
-              size: 18, color: AppColors.textSecondary),
+          style: TextStyle(
+              fontSize: 13,
+              color: active ? AppColors.info : AppColors.textPrimary,
+              fontWeight: active ? FontWeight.w600 : FontWeight.normal),
+          icon: Icon(Icons.expand_more_rounded,
+              size: 18,
+              color: active ? AppColors.info : AppColors.textSecondary),
         ),
       ),
     );

@@ -4,9 +4,9 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/services/api_service.dart';
 import '../../core/utils/helpers.dart';
-import '../../core/widgets/dashboard_card.dart';
 import '../../core/widgets/error_view.dart';
 import '../../core/widgets/loading_widget.dart';
+import '../../core/widgets/premium_dashboard.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../models/api_response_model.dart';
 import '../../models/dashboard_stat_model.dart';
@@ -80,24 +80,28 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
         value: Helpers.formatNumber(clinics['pending'] as num?),
         icon: Icons.pending_actions_rounded,
         color: AppColors.warning,
+        subtitle: 'Needs your review',
       ),
       DashboardStat(
         title: 'Total Users',
         value: Helpers.formatNumber(users['total'] as num?),
         icon: Icons.people_alt_rounded,
-        color: AppColors.accent,
+        color: AppColors.glowBlue,
+        subtitle: 'Registered users',
       ),
       DashboardStat(
         title: 'Appointments Today',
         value: Helpers.formatNumber(appts['today'] as num?),
         icon: Icons.calendar_today_rounded,
         color: AppColors.info,
+        subtitle: 'Scheduled today',
       ),
       DashboardStat(
         title: 'Revenue (Month)',
         value: Helpers.formatCurrency(revenue['month'] as num?),
         icon: Icons.account_balance_wallet_rounded,
         color: AppColors.success,
+        subtitle: 'Total revenue this month',
       ),
     ];
   }
@@ -129,59 +133,61 @@ class _DashboardBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Stats grid
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 260,
-            mainAxisExtent: 150,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
-          itemCount: stats.length,
-          itemBuilder: (_, i) => DashboardCard(stat: stats[i]),
-        ),
-        const SizedBox(height: 24),
-
-        // Recent clinics
-        if (recentClinics.isNotEmpty) ...[
-          const Text('Recent Clinics',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary)),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)
-              ],
+        PremiumDashboardOverview(
+          eyebrow: 'Welcome back',
+          headline: "Here's what's happening today.",
+          description:
+              'Monitor clinics, users, approvals and platform growth.',
+          heroIcon: Icons.monitor_heart_rounded,
+          stats: stats,
+          actions: [
+            DashboardQuickAction(
+              label: 'View Clinics',
+              icon: Icons.local_hospital_rounded,
+              color: AppColors.primary,
+              onTap: () => Navigator.pushNamed(context, AppRoutes.clinics),
             ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: recentClinics.length,
-              separatorBuilder: (_, __) =>
-                  const Divider(height: 1, color: AppColors.divider),
-              itemBuilder: (_, i) {
-                final c = recentClinics[i];
-                final status = c['status'] as String? ?? '';
-                return ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: AppColors.primarySurface,
-                    child: Icon(Icons.local_hospital_rounded,
-                        color: AppColors.primary, size: 20),
-                  ),
-                  title: Text(c['clinic_name'] as String? ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.w500)),
-                  subtitle: Text(c['city'] as String? ?? ''),
-                  trailing: _StatusBadge(status: status),
-                );
-              },
+            DashboardQuickAction(
+              label: 'Pending Approvals',
+              icon: Icons.pending_actions_rounded,
+              color: AppColors.warning,
+              onTap: () =>
+                  Navigator.pushNamed(context, AppRoutes.pendingApprovals),
+            ),
+            DashboardQuickAction(
+              label: 'System Stats',
+              icon: Icons.analytics_rounded,
+              color: AppColors.info,
+              onTap: () =>
+                  Navigator.pushNamed(context, AppRoutes.systemStats),
+            ),
+            DashboardQuickAction(
+              label: 'Revenue Report',
+              icon: Icons.payments_rounded,
+              color: AppColors.success,
+              onTap: () =>
+                  Navigator.pushNamed(context, AppRoutes.superAdminRevenue),
+            ),
+          ],
+        ),
+        const SizedBox(height: 28),
+
+        if (recentClinics.isNotEmpty) ...[
+          PremiumDashboardSection(
+            title: 'Recent Clinics',
+            trailing: TextButton(
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppRoutes.clinics),
+              child: Text('View all',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700)),
+            ),
+            child: Column(
+              children: recentClinics
+                  .take(6)
+                  .map((c) => _ClinicRow(clinic: c))
+                  .toList(),
             ),
           ),
         ],
@@ -190,9 +196,68 @@ class _DashboardBody extends StatelessWidget {
   }
 }
 
-class _StatusBadge extends StatelessWidget {
+class _ClinicRow extends StatelessWidget {
+  final Map clinic;
+  const _ClinicRow({required this.clinic});
+
+  @override
+  Widget build(BuildContext context) {
+    final status = clinic['status'] as String? ?? '';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: .18),
+                  AppColors.primaryLight.withValues(alpha: .08),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: .22),
+              ),
+            ),
+            child: const Icon(Icons.local_hospital_rounded,
+                color: AppColors.primary, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  clinic['clinic_name'] as String? ?? '',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  clinic['city'] as String? ?? '',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          _StatusPill(status: status),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
   final String status;
-  const _StatusBadge({required this.status});
+  const _StatusPill({required this.status});
 
   @override
   Widget build(BuildContext context) {
@@ -201,23 +266,32 @@ class _StatusBadge extends StatelessWidget {
       case 'approved':
         bg = AppColors.successSurface;
         fg = AppColors.success;
+        break;
       case 'pending':
         bg = AppColors.warningSurface;
         fg = AppColors.warning;
+        break;
       case 'suspended':
         bg = AppColors.dangerSurface;
         fg = AppColors.danger;
+        break;
       default:
-        bg = AppColors.background;
+        bg = AppColors.surfaceMuted;
         fg = AppColors.textSecondary;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration:
-          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: fg.withValues(alpha: .2)),
+      ),
       child: Text(
-        status[0].toUpperCase() + status.substring(1),
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
+        status.isEmpty
+            ? '—'
+            : status[0].toUpperCase() + status.substring(1),
+        style: TextStyle(
+            fontSize: 11, fontWeight: FontWeight.w700, color: fg),
       ),
     );
   }

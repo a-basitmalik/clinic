@@ -21,12 +21,16 @@ class SubscriptionPlansScreen extends StatelessWidget {
                 color: AppColors.primarySurface,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.card_membership_rounded, size: 48, color: AppColors.primary),
+              child: const Icon(Icons.card_membership_rounded,
+                  size: 48, color: AppColors.primary),
             ),
             const SizedBox(height: 20),
             const Text(
               'Subscription Plans',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
             const Text(

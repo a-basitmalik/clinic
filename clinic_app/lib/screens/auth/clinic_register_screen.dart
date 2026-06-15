@@ -8,6 +8,7 @@ import '../../core/widgets/custom_checkbox.dart';
 import '../../core/widgets/custom_text_field.dart';
 import '../../core/widgets/review_card.dart';
 import '../../core/widgets/step_indicator.dart';
+import '../../core/widgets/premium_surface.dart';
 import '../../models/api_response_model.dart';
 import '../../models/clinic_registration_model.dart';
 import '../../models/doctor_registration_model.dart';
@@ -298,9 +299,9 @@ class _ClinicRegisterScreenState extends State<ClinicRegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.glass,
         elevation: 0,
         title: const Text(
           AppStrings.registerClinic,
@@ -311,35 +312,37 @@ class _ClinicRegisterScreenState extends State<ClinicRegisterScreen> {
         ),
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            if (!_submitted)
-              Container(
-                color: AppColors.surface,
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                child: StepIndicator(
-                  totalSteps: 5,
-                  currentStep: _step,
-                  labels: _stepLabels,
+      body: PremiumBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              if (!_submitted)
+                Container(
+                  color: AppColors.glass,
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  child: StepIndicator(
+                    totalSteps: 5,
+                    currentStep: _step,
+                    labels: _stepLabels,
+                  ),
                 ),
+              Expanded(
+                child: _submitted
+                    ? _buildSuccess()
+                    : IndexedStack(
+                        index: _step,
+                        children: [
+                          _buildStep1(),
+                          _buildStep2(),
+                          _buildStep3(),
+                          _buildStep4(),
+                          _buildReview(),
+                        ],
+                      ),
               ),
-            Expanded(
-              child: _submitted
-                  ? _buildSuccess()
-                  : IndexedStack(
-                      index: _step,
-                      children: [
-                        _buildStep1(),
-                        _buildStep2(),
-                        _buildStep3(),
-                        _buildStep4(),
-                        _buildReview(),
-                      ],
-                    ),
-            ),
-            if (!_submitted) _buildNavButtons(),
-          ],
+              if (!_submitted) _buildNavButtons(),
+            ],
+          ),
         ),
       ),
     );
@@ -352,7 +355,7 @@ class _ClinicRegisterScreenState extends State<ClinicRegisterScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.glass,
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: Row(

@@ -24,12 +24,33 @@ class CustomCheckboxTile extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: value ? AppColors.primarySurface : AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
+          gradient: value
+              ? LinearGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: .12),
+                    AppColors.primarySurface.withValues(alpha: .80),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: value ? null : AppColors.glass,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: value ? AppColors.primary : AppColors.border,
-            width: value ? 1.5 : 1,
+            color: value
+                ? AppColors.primary.withValues(alpha: .45)
+                : Colors.white,
+            width: value ? 1.5 : 1.2,
           ),
+          boxShadow: value
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: .12),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : null,
         ),
         child: Row(
           children: [
@@ -46,7 +67,8 @@ class CustomCheckboxTile extends StatelessWidget {
                 ),
               ),
               child: value
-                  ? const Icon(Icons.check_rounded, color: Colors.white, size: 14)
+                  ? const Icon(Icons.check_rounded,
+                      color: Colors.white, size: 14)
                   : null,
             ),
             const SizedBox(width: 12),
@@ -65,7 +87,8 @@ class CustomCheckboxTile extends StatelessWidget {
                   if (subtitle != null)
                     Text(
                       subtitle!,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
                     ),
                 ],
               ),
@@ -84,8 +107,13 @@ class DaysCheckboxGroup extends StatelessWidget {
   final String? errorText;
 
   static const _days = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday',
-    'Friday', 'Saturday', 'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
   ];
 
   const DaysCheckboxGroup({
@@ -113,13 +141,32 @@ class DaysCheckboxGroup extends StatelessWidget {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 120),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: selected ? AppColors.primary : AppColors.surface,
+                  gradient: selected
+                      ? const LinearGradient(
+                          colors: [AppColors.primary, AppColors.primaryDark],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
+                  color: selected ? null : AppColors.glass,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: selected ? AppColors.primary : AppColors.border,
+                    color: selected
+                        ? AppColors.primary
+                        : AppColors.border,
                   ),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: .30),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ]
+                      : null,
                 ),
                 child: Text(
                   day.substring(0, 3),
@@ -135,7 +182,8 @@ class DaysCheckboxGroup extends StatelessWidget {
         ),
         if (errorText != null) ...[
           const SizedBox(height: 6),
-          Text(errorText!, style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+          Text(errorText!,
+              style: const TextStyle(color: AppColors.danger, fontSize: 12)),
         ],
       ],
     );

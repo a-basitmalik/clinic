@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import 'responsive_layout.dart';
+import 'premium_surface.dart';
 
 class AppTableColumn<T> {
   final String header;
@@ -46,23 +47,14 @@ class AppTable<T> extends StatelessWidget {
       return Column(children: rows.map(mobileCard!).toList());
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2)),
-        ],
-      ),
+    return GlassPanel(
+      radius: 18,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: DataTable(
-            headingRowColor: WidgetStateProperty.all(AppColors.background),
+            headingRowColor: WidgetStateProperty.all(AppColors.primarySurface),
             dataRowMinHeight: 52,
             dataRowMaxHeight: 72,
             headingTextStyle: const TextStyle(
