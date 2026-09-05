@@ -44,8 +44,11 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
     final role = auth.currentUser!.role;
-    Navigator.pushReplacementNamed(
-        context, AppRoutes.dashboardForRole(role));
+    if (auth.currentUser!.mustChangePassword) {
+      Navigator.pushReplacementNamed(context, AppRoutes.changePassword);
+      return;
+    }
+    Navigator.pushReplacementNamed(context, AppRoutes.dashboardForRole(role));
   }
 
   @override
@@ -70,7 +73,8 @@ class _SplashScreenState extends State<SplashScreen>
           Positioned(
             top: 200,
             left: 0,
-            child: _GlowOrb(size: 280, color: AppColors.primaryLight, opacity: .08),
+            child: _GlowOrb(
+                size: 280, color: AppColors.primaryLight, opacity: .08),
           ),
           // Center content
           Center(

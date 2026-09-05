@@ -73,6 +73,8 @@ class AppSidebar extends StatelessWidget {
           _SidebarItem(AppStrings.queue, Icons.queue_rounded, AppRoutes.queue),
           _SidebarItem(
               'Schedule', Icons.schedule_rounded, AppRoutes.doctorSchedule),
+          _SidebarItem('Disease Risk', Icons.model_training_rounded,
+              AppRoutes.diseaseRisk),
           _SidebarItem(AppStrings.prescriptions, Icons.receipt_long_rounded,
               AppRoutes.prescriptions),
           _SidebarItem(AppStrings.earnings,
@@ -95,7 +97,8 @@ class AppSidebar extends StatelessWidget {
               AppRoutes.receptionistDashboard),
           _SidebarItem(
               'Patients', Icons.people_alt_rounded, AppRoutes.recPatients),
-          _SidebarItem('Token Queue', Icons.queue_rounded, AppRoutes.tokenQueue),
+          _SidebarItem(
+              'Token Queue', Icons.queue_rounded, AppRoutes.tokenQueue),
           _SidebarItem('Book Appointment', Icons.calendar_month_rounded,
               AppRoutes.bookAppointment),
           _SidebarItem('Billing', Icons.payments_rounded, AppRoutes.billing),
@@ -437,8 +440,7 @@ class _NavItem extends StatelessWidget {
               : () => Navigator.pushReplacementNamed(context, item.route),
           hoverColor: Colors.white.withValues(alpha: .06),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
             child: Row(
               children: [
                 Icon(
@@ -454,8 +456,7 @@ class _NavItem extends StatelessWidget {
                     item.label,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight:
-                          active ? FontWeight.w700 : FontWeight.w400,
+                      fontWeight: active ? FontWeight.w700 : FontWeight.w400,
                       color: active
                           ? Colors.white
                           : Colors.white.withValues(alpha: .55),

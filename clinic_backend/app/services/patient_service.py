@@ -11,6 +11,7 @@ from ..models.patient import Patient
 from ..models.payment import Payment
 from ..models.prescription import Prescription
 from ..services.token_service import TokenService
+from ..utils.validators import parse_int
 
 
 class PatientService:
@@ -39,17 +40,24 @@ class PatientService:
 
         patient_code = TokenService.next_patient_code(clinic_id, date.today())
 
+        age = parse_int(data.get("age"), "age", minimum=0)
+        if age is not None and age > 130:
+            raise ValueError("age must be 130 or less.")
+        blood_group = (data.get("blood_group") or "").strip() or None
+        if blood_group and blood_group not in ("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"):
+            raise ValueError("Invalid blood_group.")
+
         patient = Patient(
             clinic_id=clinic_id,
             user_id=data.get("user_id"),
             patient_code=patient_code,
             name=name,
-            age=data.get("age"),
+            age=age,
             gender=gender,
             phone=phone,
             cnic=cnic,
             address=(data.get("address") or "").strip() or None,
-            blood_group=(data.get("blood_group") or "").strip() or None,
+            blood_group=blood_group,
             emergency_contact=(data.get("emergency_contact") or "").strip() or None,
             created_by=created_by,
         )
@@ -127,7 +135,10 @@ class PatientService:
             patient.name = (data.get("name") or "").strip() or patient.name
 
         if "age" in data:
-            patient.age = data.get("age")
+            age = parse_int(data.get("age"), "age", minimum=0)
+            if age is not None and age > 130:
+                raise ValueError("age must be 130 or less.")
+            patient.age = age
 
         if "gender" in data:
             gender = data.get("gender")
@@ -135,7 +146,13 @@ class PatientService:
                 raise ValueError("gender must be 'male', 'female', or 'other'.")
             patient.gender = gender
 
-        for field in ("address", "blood_group", "emergency_contact", "user_id"):
+        if "blood_group" in data:
+            blood_group = (data.get("blood_group") or "").strip() or None
+            if blood_group and blood_group not in ("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"):
+                raise ValueError("Invalid blood_group.")
+            patient.blood_group = blood_group
+
+        for field in ("address", "emergency_contact", "user_id"):
             if field in data:
                 val = data.get(field)
                 if isinstance(val, str):

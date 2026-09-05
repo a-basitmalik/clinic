@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/clinic_register_screen.dart';
+import '../screens/auth/change_password_screen.dart';
+import '../screens/auth/profile_screen.dart';
 import '../screens/super_admin/super_admin_dashboard.dart';
 import '../screens/super_admin/all_clinics_screen.dart';
 import '../screens/super_admin/pending_clinics_screen.dart';
@@ -30,6 +32,7 @@ import '../screens/doctor/prescriptions_screen.dart';
 import '../screens/doctor/assistants_screen.dart';
 import '../screens/doctor/doctor_earnings_screen.dart';
 import '../screens/doctor/doctor_schedule_screen.dart';
+import '../screens/doctor/disease_risk_screen.dart';
 import '../screens/assistant/assistant_dashboard.dart';
 import '../screens/assistant/assistant_queue_screen.dart';
 import '../screens/pharmacy/pharmacy_dashboard.dart';
@@ -60,6 +63,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String clinicRegister = '/register-clinic';
   static const String profile = '/profile';
+  static const String changePassword = '/change-password';
 
   // ── Super Admin ───────────────────────────────────────────────────────────
   static const String superAdminDashboard = '/super-admin';
@@ -96,6 +100,7 @@ class AppRoutes {
   static const String earnings = '/doctor/earnings';
   static const String assistants = '/doctor/assistants';
   static const String doctorSchedule = '/doctor/schedule';
+  static const String diseaseRisk = '/doctor/disease-risk';
 
   // ── Other roles ───────────────────────────────────────────────────────────
   static const String assistantDashboard = '/assistant';
@@ -129,6 +134,8 @@ class AppRoutes {
         splash: (_) => const SplashScreen(),
         login: (_) => const LoginScreen(),
         clinicRegister: (_) => const ClinicRegisterScreen(),
+        profile: (_) => const ProfileScreen(),
+        changePassword: (_) => const ChangePasswordScreen(),
 
         // Super Admin
         superAdminDashboard: (_) => const SuperAdminDashboard(),
@@ -165,6 +172,7 @@ class AppRoutes {
         earnings: (_) => const DoctorEarningsScreen(),
         assistants: (_) => const DoctorAssistantsScreen(),
         doctorSchedule: (_) => const DoctorScheduleScreen(),
+        diseaseRisk: (_) => const DiseaseRiskScreen(),
 
         // Other roles
         assistantDashboard: (_) => const AssistantDashboard(),

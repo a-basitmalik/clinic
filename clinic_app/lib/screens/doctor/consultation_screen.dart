@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/services/clinical_ai_service.dart';
 import '../../core/services/doctor_service.dart';
 import '../../core/services/prescription_service.dart';
 import '../../core/widgets/custom_button.dart';
@@ -32,7 +33,11 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
   Map<String, dynamic> _profile = {};
   bool _loading = true;
   bool _saving = false;
+  bool _aiDrafting = false;
+  bool _aiSummarizing = false;
   String? _error;
+  Map<String, dynamic>? _aiDraft;
+  String? _aiSummary;
 
   @override
   void initState() {
@@ -134,6 +139,70 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
 
   void _snack(String msg) => ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating));
+  Future<void> _loadAiSummary() async {
+    final patientId = widget.appointment.patientId;
+    if (patientId == null) {
+      _snack('Patient is missing for this appointment.');
+      return;
+    }
+    setState(() => _aiSummarizing = true);
+    try {
+      final result = await ClinicalAiService.patientSummary(patientId);
+      if (mounted) {
+        setState(() => _aiSummary = result['summary'] as String? ?? '');
+      }
+    } on ApiException catch (e) {
+      _snack(e.message);
+    } catch (e) {
+      _snack(e.toString());
+    } finally {
+      if (mounted) setState(() => _aiSummarizing = false);
+    }
+  }
+
+  Future<void> _generateAiDraft() async {
+    final patientId = widget.appointment.patientId;
+    if (patientId == null) {
+      _snack('Patient is missing for this appointment.');
+      return;
+    }
+    setState(() => _aiDrafting = true);
+    try {
+      final vitals = (_profile['vitals'] as List? ?? []).take(3).map((v) {
+        final m = v as Map<String, dynamic>;
+        return 'BP ${m['blood_pressure'] ?? '-'}, pulse ${m['pulse'] ?? '-'}, temp ${m['temperature'] ?? '-'}, O2 ${m['oxygen_level'] ?? '-'}';
+      }).join('\n');
+      final result = await ClinicalAiService.consultationAssist(
+        appointmentId: widget.appointment.id,
+        patientId: patientId,
+        symptoms: _symptoms.text.trim(),
+        diagnosis: _diagnosis.text.trim(),
+        notes: _notes.text.trim(),
+        vitalsSummary: vitals,
+      );
+      if (mounted) setState(() => _aiDraft = result);
+    } on ApiException catch (e) {
+      _snack(e.message);
+    } catch (e) {
+      _snack(e.toString());
+    } finally {
+      if (mounted) setState(() => _aiDrafting = false);
+    }
+  }
+
+  void _applyAiDraft() {
+    final draft = _aiDraft;
+    if (draft == null) return;
+    setState(() {
+      final symptomsDraft = (draft['symptoms_draft'] as String? ?? '').trim();
+      final diagnosisDraft = (draft['diagnosis_draft'] as String? ?? '').trim();
+      final notesDraft = (draft['notes_draft'] as String? ?? '').trim();
+      if (symptomsDraft.isNotEmpty) _symptoms.text = symptomsDraft;
+      if (diagnosisDraft.isNotEmpty) _diagnosis.text = diagnosisDraft;
+      if (notesDraft.isNotEmpty) _notes.text = notesDraft;
+    });
+    _snack('AI draft applied. Please review before saving.');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -279,6 +348,59 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                 Expanded(
                                     child: Column(children: [
                                   _Panel(
+                                      title: 'Clinical AI',
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: [
+                                                  CustomButton(
+                                                      label: 'Summarize',
+                                                      icon: Icons
+                                                          .auto_awesome_rounded,
+                                                      height: 40,
+                                                      loading: _aiSummarizing,
+                                                      onPressed:
+                                                          _loadAiSummary),
+                                                  CustomButton(
+                                                      label: 'Draft',
+                                                      icon: Icons
+                                                          .edit_note_rounded,
+                                                      height: 40,
+                                                      variant: ButtonVariant
+                                                          .outlined,
+                                                      loading: _aiDrafting,
+                                                      onPressed:
+                                                          _generateAiDraft),
+                                                ]),
+                                            const SizedBox(height: 10),
+                                            const Text(
+                                                'Clinical support only. Review before saving.',
+                                                style: TextStyle(
+                                                    color:
+                                                        AppColors.textSecondary,
+                                                    fontSize: 12)),
+                                            if (_aiSummary != null &&
+                                                _aiSummary!
+                                                    .trim()
+                                                    .isNotEmpty) ...[
+                                              const SizedBox(height: 12),
+                                              Text(_aiSummary!,
+                                                  style: const TextStyle(
+                                                      height: 1.45)),
+                                            ],
+                                            if (_aiDraft != null) ...[
+                                              const SizedBox(height: 12),
+                                              _AiDraftPreview(
+                                                  result: _aiDraft!,
+                                                  onApply: _applyAiDraft),
+                                            ],
+                                          ])),
+                                  const SizedBox(height: 14),
+                                  _Panel(
                                       title: 'Recent Vitals',
                                       child: vitals.isEmpty
                                           ? const Text('No vitals yet.',
@@ -336,6 +458,79 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                         ]),
                   ),
                 ),
+    );
+  }
+}
+
+class _AiDraftPreview extends StatelessWidget {
+  final Map<String, dynamic> result;
+  final VoidCallback onApply;
+  const _AiDraftPreview({required this.result, required this.onApply});
+
+  @override
+  Widget build(BuildContext context) {
+    final entities =
+        result['extracted_entities'] as Map<String, dynamic>? ?? {};
+    final redFlags = result['red_flags'] as List? ?? [];
+    final questions = result['suggested_questions'] as List? ?? [];
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(result['summary'] as String? ?? 'Draft ready.',
+            style: const TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        _MiniList(title: 'Entities', values: [
+          ..._list(entities['conditions']),
+          ..._list(entities['medicines']),
+          ..._list(entities['symptoms']),
+        ]),
+        if (redFlags.isNotEmpty)
+          _MiniList(title: 'Red flags to check', values: _list(redFlags)),
+        if (questions.isNotEmpty)
+          _MiniList(title: 'Questions', values: _list(questions)),
+        const SizedBox(height: 10),
+        CustomButton(
+            label: 'Apply Draft',
+            icon: Icons.check_rounded,
+            height: 40,
+            width: double.infinity,
+            onPressed: onApply),
+      ]),
+    );
+  }
+
+  static List<String> _list(dynamic value) {
+    if (value is List) {
+      return value.map((e) => '$e').where((e) => e.trim().isNotEmpty).toList();
+    }
+    return [];
+  }
+}
+
+class _MiniList extends StatelessWidget {
+  final String title;
+  final List<String> values;
+  const _MiniList({required this.title, required this.values});
+
+  @override
+  Widget build(BuildContext context) {
+    if (values.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+        const SizedBox(height: 4),
+        Text(values.take(5).join(' • '),
+            style:
+                const TextStyle(color: AppColors.textSecondary, height: 1.4)),
+      ]),
     );
   }
 }

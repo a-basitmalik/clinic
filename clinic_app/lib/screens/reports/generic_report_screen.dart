@@ -121,13 +121,16 @@ class _GenericReportScreenState extends State<GenericReportScreen> {
         const SizedBox(height: 12),
         Wrap(spacing: 12, runSpacing: 12, children: [
           FilterChip(
-              label: const Text('Export JSON'),
+              label: const Text('Include export detail'),
               selected: _export,
               onSelected: (v) {
                 setState(() => _export = v);
                 _load();
               }),
-          if (_report != null) ExportButton(data: _report!.raw),
+          if (_report != null)
+            ExportButton(
+                data: _report!.raw,
+                filename: widget.title.toLowerCase().replaceAll(' ', '-')),
         ]),
         const SizedBox(height: 16),
         if (_loading)

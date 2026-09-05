@@ -115,6 +115,9 @@ sudo nginx -t && sudo systemctl reload nginx
 All endpoints are prefixed with `/api`.  
 Authenticated endpoints require: `Authorization: Bearer <token>`
 
+Clinical AI setup and endpoint details are documented in
+[`CLINICAL_AI_INTEGRATION.md`](./CLINICAL_AI_INTEGRATION.md).
+
 ### Response envelope
 
 ```json

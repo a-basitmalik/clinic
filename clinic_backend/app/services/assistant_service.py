@@ -234,6 +234,8 @@ class AssistantService:
                 raise ValueError("Access denied. Appointment does not belong to this doctor.")
             if int(appt.patient_id) != int(patient_id):
                 raise ValueError("patient_id does not match appointment patient.")
+            if int(appt.patient_id) != int(patient_id):
+                raise ValueError("patient_id does not match appointment patient.")
 
         patient = Patient.query.filter_by(clinic_id=clinic_id, id=int(patient_id)).first()
         if not patient:
@@ -253,6 +255,12 @@ class AssistantService:
             oxygen_level=parse_int(data.get("oxygen_level"), "oxygen_level", minimum=0),
             notes=(data.get("notes") or "").strip() or None,
         )
+        if vitals.temperature is not None and not 25 <= float(vitals.temperature) <= 50:
+            raise ValueError("temperature must be between 25 and 50 Celsius.")
+        if vitals.pulse is not None and not 20 <= vitals.pulse <= 250:
+            raise ValueError("pulse must be between 20 and 250.")
+        if vitals.oxygen_level is not None and not 0 <= vitals.oxygen_level <= 100:
+            raise ValueError("oxygen_level must be between 0 and 100.")
         db.session.add(vitals)
         db.session.commit()
         return vitals

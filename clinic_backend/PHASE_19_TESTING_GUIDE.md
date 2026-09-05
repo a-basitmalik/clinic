@@ -19,7 +19,7 @@ Set your API base URL once:
 export API_BASE="https://clinic.nalexustechnologies.com/api"
 
 # Local example
-# export API_BASE="http://127.0.0.1:5110/api"
+# export API_BASE= "http://127.0.0.1:5110/api"
 ```
 
 ### Tools

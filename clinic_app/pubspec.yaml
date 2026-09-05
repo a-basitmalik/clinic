@@ -27,6 +27,7 @@ dependencies:
 
   # Icons (extended)
   cupertino_icons: ^1.0.8
+  pdf: ^3.11.3
 
 dev_dependencies:
   flutter_test:

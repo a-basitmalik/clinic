@@ -68,3 +68,8 @@ Thumbs.db
 *.swp
 *.swo
 *~
+~$*
+
+# ── Confidential (contains live production credentials) ───────────────────────
+generate_login_credentials_report.py
+reports/Clinic_Login_Credentials.pdf

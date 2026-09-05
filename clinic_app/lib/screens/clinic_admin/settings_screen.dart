@@ -1,244 +1,210 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/widgets/premium_surface.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/services/auth_service.dart';
+import '../../core/services/clinic_admin_service.dart';
+import '../../core/utils/validators.dart';
+import '../../core/widgets/custom_button.dart';
+import '../../core/widgets/custom_text_field.dart';
+import '../../core/widgets/loading_widget.dart';
 import '../../core/widgets/responsive_layout.dart';
+import '../../models/api_response_model.dart';
+import '../../models/clinic_model.dart';
 import '../../routes/app_routes.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _owner = TextEditingController();
+  final _phone = TextEditingController();
+  final _address = TextEditingController();
+  final _city = TextEditingController();
+  final _opening = TextEditingController();
+  final _closing = TextEditingController();
+  final _days = <String>{};
+  bool _loading = true;
+  bool _saving = false;
+  String? _error;
+  static const weekdays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final clinicId = context.read<AuthService>().currentUser?.clinicId;
+    if (clinicId == null) {
+      setState(() {
+        _error = 'Clinic context is missing.';
+        _loading = false;
+      });
+      return;
+    }
+    try {
+      final clinic = await ClinicAdminService.getClinic(clinicId);
+      _fill(clinic);
+    } on ApiException catch (e) {
+      _error = e.message;
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _fill(ClinicModel c) {
+    _name.text = c.clinicName;
+    _owner.text = c.ownerName;
+    _phone.text = c.phone ?? '';
+    _address.text = c.address ?? '';
+    _city.text = c.city;
+    _opening.text = c.openingTime ?? '09:00';
+    _closing.text = c.closingTime ?? '17:00';
+    _days
+      ..clear()
+      ..addAll(c.workingDays);
+  }
+
+  Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_days.isEmpty) {
+      setState(() => _error = 'Select at least one working day.');
+      return;
+    }
+    if (!Validators.isTimeLater(_opening.text, _closing.text)) {
+      setState(() => _error = 'Closing time must be after opening time.');
+      return;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final clinicId = context.read<AuthService>().currentUser!.clinicId!;
+      await ClinicAdminService.updateClinic(clinicId, {
+        'clinic_name': _name.text.trim(),
+        'owner_name': _owner.text.trim(),
+        'phone': _phone.text.trim(),
+        'address': _address.text.trim(),
+        'city': _city.text.trim(),
+        'opening_time': _opening.text.trim(),
+        'closing_time': _closing.text.trim(),
+        'working_days': _days.toList(),
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Clinic settings saved.')));
+      }
+    } on ApiException catch (e) {
+      setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in [
+      _name,
+      _owner,
+      _phone,
+      _address,
+      _city,
+      _opening,
+      _closing
+    ]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
-      title: 'Settings',
+      title: 'Clinic Settings',
       currentRoute: AppRoutes.settings,
-      body: Column(
-        children: [
-          ColoredGlassCard(
-            color: AppColors.primary,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.primaryDark],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                          color: AppColors.primary.withValues(alpha: .35),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6)),
-                    ],
-                  ),
-                  child: const Icon(Icons.settings_rounded,
-                      color: Colors.white, size: 30),
-                ),
-                const SizedBox(width: 18),
-                Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                    const Text(
-                      'Clinic Settings',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Manage clinic preferences and configuration',
-                      style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary),
-                    ),
-                  ]),
-                ),
-              ]),
+      body: _loading
+          ? const LoadingWidget()
+          : Form(
+              key: _formKey,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_error != null)
+                        Text(_error!,
+                            style: const TextStyle(color: Colors.red)),
+                      CustomTextField(
+                          label: 'Clinic Name',
+                          controller: _name,
+                          validator: Validators.required),
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                          label: 'Owner Name',
+                          controller: _owner,
+                          validator: Validators.required),
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                          label: 'Phone',
+                          controller: _phone,
+                          validator: Validators.requiredPhone),
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                          label: 'Address', controller: _address, maxLines: 2),
+                      const SizedBox(height: 12),
+                      CustomTextField(label: 'City', controller: _city),
+                      const SizedBox(height: 12),
+                      Row(children: [
+                        Expanded(
+                            child: CustomTextField(
+                                label: 'Opening Time',
+                                controller: _opening,
+                                validator: Validators.time)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: CustomTextField(
+                                label: 'Closing Time',
+                                controller: _closing,
+                                validator: Validators.time)),
+                      ]),
+                      const SizedBox(height: 16),
+                      const Text('Working Days',
+                          style: TextStyle(fontWeight: FontWeight.w700)),
+                      Wrap(
+                        spacing: 8,
+                        children: weekdays
+                            .map((day) => FilterChip(
+                                  label: Text(day),
+                                  selected: _days.contains(day),
+                                  onSelected: (v) => setState(() =>
+                                      v ? _days.add(day) : _days.remove(day)),
+                                ))
+                            .toList(),
+                      ),
+                      const SizedBox(height: 20),
+                      CustomButton(
+                          label: 'Save Settings',
+                          loading: _saving,
+                          onPressed: _save),
+                    ]),
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          _SettingsGroup(
-            title: 'General',
-            items: [
-              _SettingsTile(
-                icon: Icons.business_rounded,
-                label: 'Clinic Profile',
-                subtitle: 'Name, address, contact info',
-                color: AppColors.primary,
-              ),
-              _SettingsTile(
-                icon: Icons.schedule_rounded,
-                label: 'Working Hours',
-                subtitle: 'Set clinic operating schedule',
-                color: AppColors.info,
-              ),
-              _SettingsTile(
-                icon: Icons.people_rounded,
-                label: 'Staff Management',
-                subtitle: 'Roles and permissions',
-                color: AppColors.glowPurple,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _SettingsGroup(
-            title: 'System',
-            items: [
-              _SettingsTile(
-                icon: Icons.notifications_rounded,
-                label: 'Notifications',
-                subtitle: 'Alerts and reminders',
-                color: AppColors.warning,
-              ),
-              _SettingsTile(
-                icon: Icons.security_rounded,
-                label: 'Security',
-                subtitle: 'Password and access control',
-                color: AppColors.danger,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          GlassPanel(
-            radius: 16,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: AppColors.info.withValues(alpha: .12),
-                    borderRadius: BorderRadius.circular(14),
-                    border:
-                        Border.all(color: AppColors.info.withValues(alpha: .25)),
-                  ),
-                  child: const Icon(Icons.info_outline_rounded,
-                      color: AppColors.info, size: 22),
-                ),
-                const SizedBox(width: 14),
-                const Expanded(
-                  child: Text(
-                    'Full settings management is coming in the next update. Stay tuned!',
-                    style: TextStyle(
-                        fontSize: 13, color: AppColors.textSecondary),
-                  ),
-                ),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SettingsGroup extends StatelessWidget {
-  final String title;
-  final List<_SettingsTile> items;
-  const _SettingsGroup({required this.title, required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Container(
-          width: 4,
-          height: 16,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.primary, AppColors.primaryDark],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(title.toUpperCase(),
-            style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-                color: AppColors.textSecondary)),
-      ]),
-      const SizedBox(height: 10),
-      GlassPanel(
-        radius: 18,
-        child: Column(
-          children: items.asMap().entries.map((e) {
-            final isLast = e.key == items.length - 1;
-            return Column(children: [
-              e.value,
-              if (!isLast)
-                Divider(
-                    height: 1,
-                    color: AppColors.divider.withValues(alpha: .5)),
-            ]);
-          }).toList(),
-        ),
-      ),
-    ]);
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String subtitle;
-  final Color color;
-  const _SettingsTile({
-    required this.icon,
-    required this.label,
-    required this.subtitle,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(children: [
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                color.withValues(alpha: .16),
-                color.withValues(alpha: .07),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withValues(alpha: .22)),
-          ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: AppColors.textPrimary)),
-            Text(subtitle,
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary)),
-          ]),
-        ),
-        const Icon(Icons.chevron_right_rounded,
-            size: 18, color: AppColors.textMuted),
-      ]),
     );
   }
 }

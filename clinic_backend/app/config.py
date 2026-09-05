@@ -17,6 +17,21 @@ class BaseConfig:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JSON_SORT_KEYS = False
+    CORS_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv(
+            "CORS_ORIGINS",
+            "https://clinic.nalexustechnologies.com,http://localhost:3000,http://localhost:5110",
+        ).split(",")
+        if origin.strip()
+    ]
+
+    # Clinical AI provider. The app ships with an OpenAI provider and a local
+    # fallback so development still works without external credentials.
+    CLINICAL_AI_PROVIDER = os.getenv("CLINICAL_AI_PROVIDER", "openai").lower()
+    CLINICAL_AI_MODEL = os.getenv("CLINICAL_AI_MODEL", "gpt-5.2")
+    CLINICAL_AI_TIMEOUT_SECONDS = int(os.getenv("CLINICAL_AI_TIMEOUT_SECONDS", "45"))
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
     _DB_HOST = os.getenv("DB_HOST", "localhost")
     _DB_PORT = os.getenv("DB_PORT", "3306")

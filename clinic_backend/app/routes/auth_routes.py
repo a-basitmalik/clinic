@@ -1,11 +1,14 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from ..extensions import db
 from ..models.user import User
 from ..services.auth_service import AuthService
 from ..services.user_service import UserService
 from ..utils.password_utils import verify_password
 from ..utils.response_utils import success_response, error_response
+from ..services.audit_service import AuditService
+from ..utils.validators import validate_email
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -31,6 +34,8 @@ def login():
     if err:
         return error_response(err, status_code=401)
 
+    user = User.query.get(int(result["user"]["id"]))
+    AuditService.log("LOGIN", "auth", user_id=user.id, clinic_id=user.clinic_id)
     return success_response("Login successful.", data=result)
 
 
@@ -43,6 +48,28 @@ def me():
     if not user.is_active:
         return error_response("Account is inactive.", status_code=401)
     return success_response("Profile retrieved.", data={"user": user.to_dict()})
+
+
+@auth_bp.route("/profile", methods=["PUT"])
+@jwt_required()
+def update_profile():
+    user = User.query.get(get_jwt_identity())
+    if not user or not user.is_active:
+        return error_response("User not found or inactive.", status_code=401)
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").lower().strip()
+    if not name:
+        return error_response("Name is required.", status_code=422)
+    if not validate_email(email):
+        return error_response("Valid email is required.", status_code=422)
+    try:
+        UserService.update_user(user, name=name, email=email, phone=data.get("phone"))
+        db.session.commit()
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), status_code=422)
+    return success_response("Profile updated.", data={"user": user.to_dict()})
 
 
 @auth_bp.route("/change-password", methods=["POST"])

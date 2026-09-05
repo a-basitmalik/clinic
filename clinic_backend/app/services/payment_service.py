@@ -14,6 +14,14 @@ class PaymentService:
 
     @staticmethod
     def create(clinic_id: int, received_by: int, data: dict) -> Payment:
+        # Accept legacy/mobile aliases while keeping one canonical database model.
+        if "method" not in data and data.get("payment_method"):
+            data["method"] = data["payment_method"]
+        if data.get("status") == "partial":
+            data["status"] = "paid"
+        if data.get("paid_amount") not in (None, ""):
+            data["amount"] = data["paid_amount"]
+
         payment_type = data.get("payment_type")
         if payment_type not in ("consultation", "pharmacy", "lab", "other"):
             raise ValueError("payment_type must be one of: consultation, pharmacy, lab, other.")
@@ -46,6 +54,8 @@ class PaymentService:
             appt = Appointment.query.filter_by(clinic_id=clinic_id, id=int(appointment_id)).first()
             if not appt:
                 raise ValueError("Appointment not found in this clinic.")
+            if patient_id and int(appt.patient_id) != int(patient_id):
+                raise ValueError("patient_id does not match appointment patient.")
 
         payment = Payment(
             clinic_id=clinic_id,
@@ -58,8 +68,22 @@ class PaymentService:
             received_by=received_by,
         )
         db.session.add(payment)
+        if appointment_id and payment_type == "consultation" and status == "paid":
+            paid_total = db.session.query(db.func.coalesce(db.func.sum(Payment.amount), 0)).filter(
+                Payment.clinic_id == clinic_id,
+                Payment.appointment_id == int(appointment_id),
+                Payment.payment_type == "consultation",
+                Payment.status == "paid",
+            ).scalar()
+            paid_total = float(paid_total or 0) + amount_f
+            fee = float(appt.fee or 0)
+            appt.payment_status = "paid" if paid_total >= fee else "partial"
         db.session.commit()
         return payment
+
+    @staticmethod
+    def get(clinic_id: int, payment_id: int) -> Payment | None:
+        return Payment.query.filter_by(clinic_id=clinic_id, id=payment_id).first()
 
     @staticmethod
     def list(

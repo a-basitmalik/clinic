@@ -264,10 +264,11 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
             const SizedBox(height: 20),
             _Label('Contact Details'),
             CustomTextField(
-              label: 'Phone Number',
+              label: 'Phone Number *',
               controller: _phone,
               keyboardType: TextInputType.phone,
               prefixIcon: Icons.phone_rounded,
+              validator: Validators.requiredPhone,
             ),
             const SizedBox(height: 12),
             CustomTextField(

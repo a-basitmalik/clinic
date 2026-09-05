@@ -117,17 +117,15 @@ class _BillingScreenState extends State<BillingScreen> {
             ? _amountCtrl.text.trim()
             : _paidCtrl.text.trim()) ??
         total;
-    final status = paid >= total ? 'paid' : 'partial';
+    final status = paid > 0 ? 'paid' : 'pending';
 
     final body = <String, dynamic>{
       'patient_id': patientId,
       'appointment_id': _selectedAppt?.id,
-      'amount': total,
-      'paid_amount': paid,
-      'payment_method': _paymentMethod,
+      'amount': paid,
+      'method': _paymentMethod,
       'payment_type': _paymentType,
       'status': status,
-      'notes': _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
     };
 
     try {

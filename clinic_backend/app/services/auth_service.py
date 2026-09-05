@@ -46,18 +46,18 @@ class AuthService:
 
         claims = AuthService._build_claims(user)
         return {
-            "token": create_access_token(identity=user.id, additional_claims=claims),
-            "refresh_token": create_refresh_token(identity=user.id),
+            "token": create_access_token(identity=str(user.id), additional_claims=claims),
+            "refresh_token": create_refresh_token(identity=str(user.id)),
             "user": user.to_dict(),
         }, None
 
     @staticmethod
     def refresh_token(user_id: int):
-        user = User.query.get(user_id)
+        user = User.query.get(int(user_id))
         if not user or not user.is_active:
             return None, "User not found or inactive."
 
         claims = AuthService._build_claims(user)
         return {
-            "token": create_access_token(identity=user.id, additional_claims=claims),
+            "token": create_access_token(identity=str(user.id), additional_claims=claims),
         }, None

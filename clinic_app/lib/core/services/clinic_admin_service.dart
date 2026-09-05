@@ -3,6 +3,7 @@ import 'api_service.dart';
 import '../../models/patient_model.dart';
 import '../../models/appointment_model.dart';
 import '../../models/revenue_model.dart';
+import '../../models/clinic_model.dart';
 
 class ClinicAdminService {
   ClinicAdminService._();
@@ -15,14 +16,41 @@ class ClinicAdminService {
     return res.data ?? {};
   }
 
+  static Future<ClinicModel> getClinic(int clinicId) async {
+    final res = await ApiService.get<ClinicModel>(
+      '${ApiConstants.clinics}/$clinicId',
+      fromData: (d) {
+        final map = d as Map<String, dynamic>;
+        return ClinicModel.fromJson(
+            (map['clinic'] as Map<String, dynamic>?) ?? map);
+      },
+    );
+    return res.data!;
+  }
+
+  static Future<ClinicModel> updateClinic(
+      int clinicId, Map<String, dynamic> body) async {
+    final res = await ApiService.put<ClinicModel>(
+      '${ApiConstants.clinics}/$clinicId',
+      body: body,
+      fromData: (d) {
+        final map = d as Map<String, dynamic>;
+        return ClinicModel.fromJson(
+            (map['clinic'] as Map<String, dynamic>?) ?? map);
+      },
+    );
+    return res.data!;
+  }
+
   static Future<List<PatientModel>> getPatients({String? search}) async {
     final params = <String, String>{'per_page': '100'};
     if (search != null && search.isNotEmpty) params['search'] = search;
     final res = await ApiService.get<List<PatientModel>>(
       ApiConstants.clinicAdminPatients,
       queryParams: params,
-      fromData: (d) =>
-          (d as List).map((e) => PatientModel.fromJson(e as Map<String, dynamic>)).toList(),
+      fromData: (d) => (d as List)
+          .map((e) => PatientModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
     return res.data ?? [];
   }
@@ -33,14 +61,15 @@ class ClinicAdminService {
     String? search,
   }) async {
     final params = <String, String>{'per_page': '100'};
-    if (date   != null && date.isNotEmpty)   params['date']   = date;
+    if (date != null && date.isNotEmpty) params['date'] = date;
     if (status != null && status.isNotEmpty) params['status'] = status;
     if (search != null && search.isNotEmpty) params['search'] = search;
     final res = await ApiService.get<List<AppointmentModel>>(
       ApiConstants.clinicAdminAppointments,
       queryParams: params,
-      fromData: (d) =>
-          (d as List).map((e) => AppointmentModel.fromJson(e as Map<String, dynamic>)).toList(),
+      fromData: (d) => (d as List)
+          .map((e) => AppointmentModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
     return res.data ?? [];
   }
@@ -48,7 +77,7 @@ class ClinicAdminService {
   static Future<RevenueModel> getRevenue({String? from, String? to}) async {
     final params = <String, String>{};
     if (from != null) params['from'] = from;
-    if (to   != null) params['to']   = to;
+    if (to != null) params['to'] = to;
     final res = await ApiService.get<RevenueModel>(
       ApiConstants.clinicAdminRevenue,
       queryParams: params.isEmpty ? null : params,
@@ -57,10 +86,11 @@ class ClinicAdminService {
     return res.data ?? RevenueModel.fromJson({});
   }
 
-  static Future<Map<String, dynamic>> getReports({String? from, String? to}) async {
+  static Future<Map<String, dynamic>> getReports(
+      {String? from, String? to}) async {
     final params = <String, String>{};
     if (from != null) params['from'] = from;
-    if (to   != null) params['to']   = to;
+    if (to != null) params['to'] = to;
     final res = await ApiService.get<Map<String, dynamic>>(
       ApiConstants.clinicAdminReports,
       queryParams: params.isEmpty ? null : params,

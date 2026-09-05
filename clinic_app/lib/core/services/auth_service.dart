@@ -7,15 +7,15 @@ import 'storage_service.dart';
 
 class AuthService extends ChangeNotifier {
   UserModel? _user;
-  String?   _token;
-  bool      _initialized = false;
-  bool      _loading     = false;
+  String? _token;
+  bool _initialized = false;
+  bool _loading = false;
 
-  UserModel? get currentUser    => _user;
-  String?    get token          => _token;
-  bool       get isLoggedIn     => _token != null && _user != null;
-  bool       get initialized    => _initialized;
-  bool       get loading        => _loading;
+  UserModel? get currentUser => _user;
+  String? get token => _token;
+  bool get isLoggedIn => _token != null && _user != null;
+  bool get initialized => _initialized;
+  bool get loading => _loading;
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
 
@@ -36,7 +36,11 @@ class AuthService extends ChangeNotifier {
         fromData: (d) => d as Map<String, dynamic>,
       );
       if (res.success && res.data != null) {
-        _user = UserModel.fromJson(res.data!);
+        final data = res.data!;
+        final userJson = data['user'] is Map<String, dynamic>
+            ? data['user'] as Map<String, dynamic>
+            : data;
+        _user = UserModel.fromJson(userJson);
         await StorageService.saveUser(_user!.toJson());
       } else {
         await _clearSession();
@@ -70,16 +74,17 @@ class AuthService extends ChangeNotifier {
         throw ApiException(message: res.message, statusCode: 400);
       }
 
-      final data  = res.data!;
+      final data = res.data!;
       final token = data['token'] as String?;
-      final user  = data['user'] as Map<String, dynamic>?;
+      final user = data['user'] as Map<String, dynamic>?;
 
       if (token == null || user == null) {
-        throw const ApiException(message: 'Invalid server response.', statusCode: 500);
+        throw const ApiException(
+            message: 'Invalid server response.', statusCode: 500);
       }
 
       _token = token;
-      _user  = UserModel.fromJson(user);
+      _user = UserModel.fromJson(user);
 
       await StorageService.saveToken(token);
       await StorageService.saveUser(_user!.toJson());
@@ -105,7 +110,7 @@ class AuthService extends ChangeNotifier {
   Future<void> changePassword(String current, String newPass) async {
     final res = await ApiService.post<void>(
       ApiConstants.changePassword,
-      body: {'current_password': current, 'new_password': newPass},
+      body: {'old_password': current, 'new_password': newPass},
     );
     if (!res.success) throw ApiException(message: res.message, statusCode: 400);
 
@@ -117,11 +122,31 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  Future<void> updateProfile({
+    required String name,
+    required String email,
+    String? phone,
+  }) async {
+    final res = await ApiService.put<Map<String, dynamic>>(
+      ApiConstants.updateProfile,
+      body: {'name': name, 'email': email, 'phone': phone},
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    final user = (res.data ?? {})['user'] as Map<String, dynamic>?;
+    if (user == null) {
+      throw const ApiException(
+          message: 'Invalid server response.', statusCode: 500);
+    }
+    _user = UserModel.fromJson(user);
+    await StorageService.saveUser(_user!.toJson());
+    notifyListeners();
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   Future<void> _clearSession() async {
     _token = null;
-    _user  = null;
+    _user = null;
     await StorageService.clear();
     notifyListeners();
   }

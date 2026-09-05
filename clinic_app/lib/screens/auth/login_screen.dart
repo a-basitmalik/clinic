@@ -43,7 +43,11 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       final role = auth.currentUser!.role;
       Navigator.pushNamedAndRemoveUntil(
-          context, AppRoutes.dashboardForRole(role), (_) => false);
+          context,
+          auth.currentUser!.mustChangePassword
+              ? AppRoutes.changePassword
+              : AppRoutes.dashboardForRole(role),
+          (_) => false);
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
@@ -73,8 +77,8 @@ class _LoginScreenState extends State<LoginScreen> {
               flex: isWide ? 4 : 1,
               child: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 28, vertical: 40),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
                     child: _LoginForm(
@@ -209,8 +213,8 @@ class _HeroPanel extends StatelessWidget {
                       ),
                       const SizedBox(height: 48),
                       ...[
-                        _FeatureLine(
-                            Icons.people_alt_rounded, 'Multi-role access control'),
+                        _FeatureLine(Icons.people_alt_rounded,
+                            'Multi-role access control'),
                         const SizedBox(height: 16),
                         _FeatureLine(Icons.medical_services_rounded,
                             'Complete patient management'),
@@ -365,8 +369,8 @@ class _LoginForm extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.dangerSurface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: AppColors.danger.withValues(alpha: .3)),
+                border:
+                    Border.all(color: AppColors.danger.withValues(alpha: .3)),
               ),
               child: Row(
                 children: [
@@ -396,23 +400,21 @@ class _LoginForm extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text('or',
-                  style: TextStyle(
-                      color: AppColors.textMuted, fontSize: 13)),
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
             ),
             const Expanded(child: Divider()),
           ]),
           const SizedBox(height: 16),
           OutlinedButton.icon(
-            onPressed: () => Navigator.pushNamed(
-                context, AppRoutes.clinicRegister),
+            onPressed: () =>
+                Navigator.pushNamed(context, AppRoutes.clinicRegister),
             icon: const Icon(Icons.add_business_rounded, size: 18),
             label: const Text(AppStrings.registerClinic),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
               backgroundColor: AppColors.primarySurface.withValues(alpha: .5),
               side: BorderSide(
-                  color: AppColors.primary.withValues(alpha: .35),
-                  width: 1.5),
+                  color: AppColors.primary.withValues(alpha: .35), width: 1.5),
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),

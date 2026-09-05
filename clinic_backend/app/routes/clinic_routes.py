@@ -108,7 +108,14 @@ def update_clinic(clinic_id):
     ]
     for field in plain_fields:
         if field in data:
-            setattr(clinic, field, data[field])
+            value = data[field]
+            if field in ("clinic_name", "owner_name", "phone") and not str(value or "").strip():
+                return error_response(f"{field} cannot be blank.", status_code=422)
+            if field == "working_days":
+                valid_days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+                if not isinstance(value, list) or not value or any(day not in valid_days for day in value):
+                    return error_response("working_days must contain valid weekdays.", status_code=422)
+            setattr(clinic, field, value.strip() if isinstance(value, str) else value)
 
     for tf in ("opening_time", "closing_time"):
         if tf in data:
@@ -116,6 +123,9 @@ def update_clinic(clinic_id):
                 setattr(clinic, tf, parse_time(data[tf]))
             except ValueError as exc:
                 return error_response(str(exc), status_code=422)
+
+    if clinic.opening_time and clinic.closing_time and clinic.closing_time <= clinic.opening_time:
+        return error_response("closing_time must be after opening_time.", status_code=422)
 
     db.session.commit()
     return success_response("Clinic updated successfully.", data={"clinic": clinic.to_dict()})

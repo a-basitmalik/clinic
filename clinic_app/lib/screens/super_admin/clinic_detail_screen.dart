@@ -127,6 +127,69 @@ class _ClinicDetailScreenState extends State<ClinicDetailScreen> {
     }
   }
 
+  Future<void> _assignPlan() async {
+    setState(() => _actioning = true);
+    try {
+      final plans = await SuperAdminService.getSubscriptionPlans();
+      if (!mounted) return;
+      if (plans.isEmpty) {
+        _snack('Create an active subscription plan first.');
+        return;
+      }
+
+      int selectedId = plans.first['id'] as int;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Assign Subscription Plan'),
+            content: DropdownButtonFormField<int>(
+              initialValue: selectedId,
+              decoration: const InputDecoration(
+                labelText: 'Plan',
+                border: OutlineInputBorder(),
+              ),
+              items: plans
+                  .where((plan) => plan['status'] == 'active')
+                  .map(
+                    (plan) => DropdownMenuItem<int>(
+                      value: plan['id'] as int,
+                      child: Text(
+                        '${plan['name']} - ${plan['price']} / ${plan['duration_days']} days',
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setDialogState(() => selectedId = value);
+                }
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Assign'),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (confirmed != true) return;
+      await SuperAdminService.assignSubscription(widget.clinicId, selectedId);
+      _snack('Subscription plan assigned.', success: true);
+      await _load();
+    } on ApiException catch (e) {
+      _snack(e.message);
+    } finally {
+      if (mounted) setState(() => _actioning = false);
+    }
+  }
+
   void _snack(String msg, {bool success = false}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
@@ -244,9 +307,10 @@ class _ClinicDetailScreenState extends State<ClinicDetailScreen> {
   }
 
   Widget _buildActions(ClinicModel c) {
-    return Row(children: [
+    return Wrap(spacing: 12, runSpacing: 12, children: [
       if (c.isPending)
-        Expanded(
+        SizedBox(
+          width: 180,
           child: CustomButton(
             label: 'Approve',
             icon: Icons.check_rounded,
@@ -254,7 +318,8 @@ class _ClinicDetailScreenState extends State<ClinicDetailScreen> {
           ),
         ),
       if (c.isApproved) ...[
-        Expanded(
+        SizedBox(
+          width: 180,
           child: CustomButton(
             label: 'Suspend',
             variant: ButtonVariant.danger,
@@ -264,7 +329,8 @@ class _ClinicDetailScreenState extends State<ClinicDetailScreen> {
         ),
       ],
       if (c.isSuspended) ...[
-        Expanded(
+        SizedBox(
+          width: 180,
           child: CustomButton(
             label: 'Reactivate',
             variant: ButtonVariant.secondary,
@@ -273,6 +339,15 @@ class _ClinicDetailScreenState extends State<ClinicDetailScreen> {
           ),
         ),
       ],
+      SizedBox(
+        width: 220,
+        child: CustomButton(
+          label: 'Assign Subscription',
+          variant: ButtonVariant.secondary,
+          icon: Icons.workspace_premium_rounded,
+          onPressed: _assignPlan,
+        ),
+      ),
     ]);
   }
 

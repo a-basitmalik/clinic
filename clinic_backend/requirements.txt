@@ -8,3 +8,5 @@ cryptography==42.0.8
 python-dotenv==1.0.1
 Werkzeug==3.0.3
 gunicorn==22.0.0
+numpy>=1.26,<3
+scikit-learn>=1.5,<2

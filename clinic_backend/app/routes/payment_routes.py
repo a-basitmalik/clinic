@@ -125,6 +125,26 @@ def list_payments():
     )
 
 
+@payment_bp.route("/<int:payment_id>", methods=["GET"])
+@jwt_required()
+@active_user_required
+@clinic_approved_required
+@role_required("super_admin", "clinic_admin", "receptionist", "doctor", "pharmacy")
+def get_payment(payment_id):
+    clinic_id, err = _resolve_clinic_id_for_read()
+    if err:
+        return err
+    payment = PaymentService.get(clinic_id, payment_id)
+    if not payment:
+        return error_response("Payment not found.", status_code=404)
+    claims = get_jwt()
+    if claims.get("role") == "doctor":
+        doctor_id = claims.get("doctor_id")
+        if not payment.appointment or int(payment.appointment.doctor_id) != int(doctor_id or 0):
+            return error_response("Access denied.", status_code=403)
+    return success_response("Payment retrieved.", data={"payment": payment.to_dict()})
+
+
 @payment_bp.route("/patient/<int:patient_id>", methods=["GET"])
 @jwt_required()
 @active_user_required

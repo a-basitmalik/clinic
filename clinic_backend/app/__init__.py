@@ -1,7 +1,8 @@
 import os
 import click
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
+from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 
 from .config import config_by_name
 from .extensions import db, jwt, migrate
@@ -16,7 +17,7 @@ def create_app(config_name: str = None) -> Flask:
     app.config.from_object(config_by_name.get(config_name, config_by_name["default"]))
 
     # Extensions
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/api/*": {"origins": app.config["CORS_ORIGINS"]}})
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
@@ -40,6 +41,9 @@ def create_app(config_name: str = None) -> Flask:
     from .routes.assistant_routes import assistant_bp, assistant_workflow_bp
     from .routes.prescription_routes import prescription_bp
     from .routes.report_routes import report_bp
+    from .routes.clinical_ai_routes import clinical_ai_bp
+    from .routes.subscription_routes import subscription_bp
+    from .routes.audit_routes import audit_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(health_bp, url_prefix="/api")
@@ -57,11 +61,41 @@ def create_app(config_name: str = None) -> Flask:
     app.register_blueprint(assistant_workflow_bp, url_prefix="/api/assistant")
     app.register_blueprint(prescription_bp, url_prefix="/api/prescriptions")
     app.register_blueprint(report_bp, url_prefix="/api/reports")
+    app.register_blueprint(clinical_ai_bp, url_prefix="/api/clinical-ai")
+    app.register_blueprint(subscription_bp, url_prefix="/api/subscriptions")
+    app.register_blueprint(audit_bp, url_prefix="/api/audit-logs")
 
     _register_jwt_handlers(app)
+    _register_audit_hook(app)
     _register_cli(app)
 
     return app
+
+
+def _register_audit_hook(app: Flask) -> None:
+    @app.after_request
+    def audit_successful_mutation(response):
+        if request.method not in {"POST", "PUT", "PATCH", "DELETE"} or response.status_code >= 400:
+            return response
+        if request.path in {"/api/auth/login"} or not request.path.startswith("/api/"):
+            return response
+        try:
+            verify_jwt_in_request(optional=True)
+            identity = get_jwt_identity()
+            claims = get_jwt() if identity else {}
+            from .services.audit_service import AuditService
+
+            AuditService.log(
+                f"{request.method}_{request.path.rstrip('/').split('/')[-1].upper()}",
+                request.blueprint or "api",
+                user_id=int(identity) if identity else None,
+                clinic_id=claims.get("clinic_id"),
+                details={"method": request.method, "path": request.path, "status_code": response.status_code},
+            )
+        except Exception:
+            db.session.rollback()
+            app.logger.exception("Failed to write audit event")
+        return response
 
 
 def _register_jwt_handlers(app: Flask) -> None:

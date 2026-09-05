@@ -20,12 +20,21 @@ class RouteGuard extends StatelessWidget {
 
     if (!auth.isLoggedIn) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+        Navigator.pushNamedAndRemoveUntil(
+            context, AppRoutes.login, (_) => false);
       });
       return const Scaffold(body: LoadingWidget());
     }
 
     final role = auth.currentUser!.role;
+    if (auth.currentUser!.mustChangePassword &&
+        ModalRoute.of(context)?.settings.name != AppRoutes.changePassword) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushNamedAndRemoveUntil(
+            context, AppRoutes.changePassword, (_) => false);
+      });
+      return const Scaffold(body: LoadingWidget());
+    }
 
     if (allowedRoles != null && !allowedRoles!.contains(role)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

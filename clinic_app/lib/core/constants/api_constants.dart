@@ -7,6 +7,7 @@ class ApiConstants {
   static const String login = '/auth/login';
   static const String me = '/auth/me';
   static const String changePassword = '/auth/change-password';
+  static const String updateProfile = '/auth/profile';
   static const String logout = '/auth/logout';
   static const String refresh = '/auth/refresh';
 
@@ -18,6 +19,10 @@ class ApiConstants {
   static const String superAdminStats = '/super-admin/stats';
   static const String superAdminRevenue = '/super-admin/revenue';
   static const String superAdminPending = '/super-admin/clinics/pending';
+  static const String subscriptionPlans = '/subscriptions/plans';
+  static const String subscriptions = '/subscriptions';
+  static String assignSubscription(int clinicId) =>
+      '/subscriptions/clinics/$clinicId';
 
   // ── Clinics ───────────────────────────────────────────────────────────────
   static const String clinics = '/clinics';
@@ -46,6 +51,17 @@ class ApiConstants {
       '/doctors/appointments/$id/start';
   static String doctorCompleteAppointment(int id) =>
       '/doctors/appointments/$id/complete';
+
+  // ── Clinical AI ──────────────────────────────────────────────────────────
+  static const String clinicalAiStatus = '/clinical-ai/status';
+  static const String clinicalAiPatientSummary = '/clinical-ai/patient-summary';
+  static const String clinicalAiConsultationAssist =
+      '/clinical-ai/consultation-assist';
+  static const String clinicalAiExtractMedicalText =
+      '/clinical-ai/extract-medical-text';
+  static const String clinicalAiRiskModels = '/clinical-ai/risk-models';
+  static String clinicalAiRiskPredict(String modelKey) =>
+      '/clinical-ai/risk-predict/$modelKey';
 
   // ── Assistants ────────────────────────────────────────────────────────────
   static const String assistants = '/assistants';
